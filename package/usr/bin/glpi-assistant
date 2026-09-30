@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+URL="http://127.0.0.1:8765"
+cmd="${1:-status}"
+
+case "$cmd" in
+  start)
+    sudo systemctl start glpi-assistant.service
+    ;;
+  stop)
+    sudo systemctl stop glpi-assistant.service
+    ;;
+  restart)
+    sudo systemctl restart glpi-assistant.service
+    ;;
+  status)
+    systemctl --no-pager --full status glpi-assistant.service || true
+    printf '\nGLPI Assistant: %s\n' "$URL"
+    ;;
+  logs)
+    journalctl -u glpi-assistant.service -f
+    ;;
+  open)
+    if command -v xdg-open >/dev/null 2>&1; then
+      xdg-open "$URL" >/dev/null 2>&1 || true
+    fi
+    printf '%s\n' "$URL"
+    ;;
+  url)
+    printf '%s\n' "$URL"
+    ;;
+  *)
+    echo "Uso: glpi-assistant {start|stop|restart|status|logs|open|url}" >&2
+    exit 2
+    ;;
+esac

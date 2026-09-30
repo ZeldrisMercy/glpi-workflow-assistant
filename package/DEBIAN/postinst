@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+APP_DIR=/usr/lib/glpi-assistant/app
+IMAGE_TAR=/usr/lib/glpi-assistant/glpi-assistant-image.tar
+DATA_DIR=/var/lib/glpi-assistant/data
+IMAGE=glpi-assistant:3.4.0-rc4
+URL=http://127.0.0.1:8765
+
+mkdir -p "$DATA_DIR"
+chmod 700 "$DATA_DIR"
+
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl enable --now docker.service >/dev/null 2>&1 || true
+fi
+
+# Aguarda o daemon Docker quando systemd estiver disponível.
+for _ in $(seq 1 30); do
+  if docker info >/dev/null 2>&1; then break; fi
+  sleep 1
+done
+
+if ! docker info >/dev/null 2>&1; then
+  echo "GLPI Assistant: Docker foi instalado, mas o daemon não está disponível." >&2
+  echo "Inicie o Docker e execute: sudo dpkg --configure -a" >&2
+  exit 1
+fi
+
+if [ -s "$IMAGE_TAR" ]; then
+  echo "GLPI Assistant: carregando imagem Docker empacotada..."
+  docker load -i "$IMAGE_TAR"
+else
+  echo "GLPI Assistant: imagem pré-compilada não encontrada; construindo localmente..."
+  echo "Isso pode baixar a imagem base Python na primeira instalação."
+  docker build -t "$IMAGE" "$APP_DIR"
+fi
+
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl daemon-reload
+  systemctl enable glpi-assistant.service >/dev/null 2>&1 || true
+  systemctl restart glpi-assistant.service
+fi
+
+# WAHA owns its separate container and session volume. Never pair or enable sends here.
+echo "Instalando WAHA 2026.9.1 e configurando a conexão local..."
+if ! /usr/bin/glpi-assistant-waha; then
+  echo "Assistant iniciado; instalação do WAHA pendente. Corrija a falha e execute sudo dpkg --configure -a." >&2
+  exit 1
+fi
+
+echo
+echo "GLPI Assistant e WAHA instalados."
+echo "Abra no navegador: $URL"
+echo "Ou execute: glpi-assistant open"
+echo

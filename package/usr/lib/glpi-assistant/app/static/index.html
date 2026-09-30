@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#070a12">
+  <title>GLPI Assistant</title>
+  <link rel="icon" type="image/svg+xml" sizes="any" href="/static/favicon.svg?rev=limitless-infinity">
+  <link rel="stylesheet" href="/static/style.css?v=3.4.0-rc4">
+  <link rel="stylesheet" href="/static/workspace.css?v=3.4.0-rc4">
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Ir para o conteúdo</a>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-bar" aria-hidden="true">∞</div>
+      <div>
+        <strong>GLPI Assistant</strong>
+        <div class="brand-sub">Seu atendimento, organizado</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span class="edition-chip">3.4.0-rc4 · Limitless</span>
+      <div id="health" class="status-pill">Carregando…</div>
+    </div>
+  </header>
+
+  <main>
+    <section id="setupCard" class="card setup-card hidden">
+      <div class="section-kicker">CONEXÃO</div>
+      <h2>Configuração inicial</h2>
+      <p class="muted">O token permanece somente nesta máquina, no armazenamento persistente local do GLPI Assistant. A aplicação escuta apenas em Localhost.</p>
+      <p class="muted small">Perfis restritos são suportados: autenticar não exige acesso a todas as entidades ou à listagem global de usuários.</p>
+      <label>URL do GLPI
+        <input id="cfgUrl" placeholder="https://empresa.example/apirest.php">
+      </label>
+      <label>User Token
+        <input id="cfgUserToken" type="password" autocomplete="off">
+      </label>
+      <label>App Token <span class="muted">(opcional)</span>
+        <input id="cfgAppToken" type="password" autocomplete="off">
+      </label>
+      <label class="check"><input id="cfgVerifyTls" type="checkbox" checked disabled> HTTPS com certificado validado (obrigatório)</label>
+      <div class="actions">
+        <button id="testCfg" class="secondary">Testar conexão</button>
+        <button id="saveCfg">Salvar configuração</button>
+      </div>
+      <pre id="setupResult" class="result"></pre>
+    </section>
+
+    <section id="workspace" class="hidden workspace">
+<section id="proativos" class="workspace-section wb-off"></section>
+
+      <div class="hero-strip">
+        <div class="limitless-mark" aria-hidden="true">∞</div>
+        <div class="hero-copy">
+          <div class="section-kicker">CENTRAL DE FECHAMENTO</div>
+          <h1>Fluxo técnico em primeiro plano.</h1>
+          <p>Chamado, fechamento, evidências e Dry Run aparecem na ordem em que o atendimento realmente acontece.</p>
+        </div>
+        <div class="hero-meta" aria-label="Características da aplicação">
+          <span>REST API</span>
+          <span>Dry Run</span>
+          <span>Bridge 2.4.0 · Multi-IA</span>
+          <span id="bridgeHeroState" class="bridge-hero-state">IA Bridge · Verificando</span>
+        </div>
+      </div>
+
+      <nav class="workspace-nav" aria-label="Navegação do GLPI Assistant">
+        <a href="#central"><span class="nav-index">⌂</span><span><strong>Minha central</strong><small>Novos e acompanhamento</small></span></a>
+        <a href="#minha-fila"><span class="nav-index"></span><span><strong>Minha fila</strong><small>Atribuídos a mim</small></span></a>
+        <a href="#encerrados"><span class="nav-index"></span><span><strong>Histórico de atendimentos</strong><small>Solucionados e fechados</small></span></a>
+        <a href="#operacao" class="active"><span class="nav-index">01</span><span><strong>Registrar atendimento</strong><small>Texto, prints e conclusão</small></span></a>
+        <a href="#proativos"><span class="nav-index">+</span><span><strong>Criar proativos</strong><small>Cadastro e revisão em lote</small></span></a>
+        <a href="#bridge-ia"><span class="nav-index">03</span><span><strong>Bridge e IA</strong><small>Recebidos e prompt</small></span></a>
+        <a href="#administracao"><span class="nav-index">04</span><span><strong>Administração</strong><small>Atividade e edição</small></span></a>
+      </nav>
+
+      <section id="central" class="workspace-section">
+        <div class="section-title-row"><div><div class="section-kicker">SEU DIA DE ATENDIMENTO</div><h1>Minha central</h1><p class="muted">Novas atribuições, retornos pendentes e conclusão dos atendimentos.</p></div><button id="wbSync">Atualizar chamados</button></div>
+        <div id="wbMetrics" class="wb-metrics"></div>
+        <div class="wb-tabs" role="group" aria-label="Filas de chamados"><button data-wb-filter="new">Recentemente atribuídos</button><button data-wb-filter="stale">Sem minha atualização</button><button data-wb-filter="all">Todos em acompanhamento</button><button id="wbGoToQueue">Ver minha fila completa →</button></div>
+        <div class="wb-toolbar"><label class="grow">Buscar na fila<input id="wbQuery" placeholder="Número, assunto ou empresa"></label><label>Empresa<select id="wbEntity"><option value="">Todas</option></select></label><label>Ordenar<select id="wbSort"><option value="stale">Mais tempo sem atualização</option><option value="new">Atribuição mais recente</option><option value="priority">Maior prioridade</option></select></label></div>
+        <p id="wbStatus" class="muted" role="status">Atualize para consultar a API do GLPI.</p>
+        <p id="wbAutoInitialNotice" class="warning small hidden" role="status">Resposta inicial automática desligada. Novas atribuições serão detectadas, mas ficarão como “aguardando” até você reativar “Criar resposta inicial (T01)”.</p>
+        <div class="wb-toolbar"><strong>Resposta inicial no GLPI (T01)</strong><button id="wbInitialToggle" type="button" class="secondary" disabled>Consultando…</button><span id="wbInitialStatus" class="small muted" role="status"></span></div>
+        <div id="wbBatch" class="wb-batch hidden"><strong id="wbSelected"></strong><button id="wbPrepare">Preparar conclusão</button><button id="wbClear" class="secondary">Limpar seleção</button></div>
+        <div id="wbRows" class="wb-rows"></div>
+        <details class="card wb-settings"><summary>Preferências de acompanhamento e mensagem</summary>
+          <p class="muted">A consulta automática detecta novas atribuições e o tempo sem atualização sua. A primeira consulta cria a base; a tarefa inicial automática vale somente para novas atribuições detectadas depois dela.</p>
+          <div class="wb-toolbar"><label class="check"><input id="wbEnabled" type="checkbox">Consultar automaticamente</label><label class="check"><input id="wbAuto" type="checkbox">Criar resposta inicial (T01)</label><label>Alerta após (horas)<input id="wbHours" type="number" min="1" max="720" value="24"></label><label>Consultar a cada (segundos)<input id="wbInterval" type="number" min="30" value="30"></label><label>Fuso das datas e da saudação<input id="wbTimezone" value="America/Sao_Paulo"></label><label>DDI<input id="wbCountry" value="55"></label></div>
+          <div class="wb-toolbar" role="group" aria-label="Inserir parâmetro na T01"><button type="button" class="secondary" data-t01-token="saudacao">{saudacao}</button><button type="button" class="secondary" data-t01-token="tecnico">{tecnico}</button><button type="button" class="secondary" data-t01-token="chamado">{chamado}</button><button type="button" class="secondary" data-t01-token="assunto">{assunto}</button></div>
+          <label>Texto da resposta inicial (T01)<textarea id="wbInitialTemplate" rows="5" maxlength="4000"></textarea></label>
+          <p class="small muted">Use {saudacao}, {tecnico}, {chamado} e {assunto}. Vale para próximas respostas públicas no GLPI; não altera as já criadas. A solicitação e o comprovante de entrega são acrescentados separadamente. Este texto é independente da mensagem WhatsApp.</p>
+          <div class="contact-identity"><label>Como você se apresenta <span class="muted">(opcional)</span><input id="wbContactName" maxlength="120" placeholder="Usar meu nome do GLPI"></label><div><p id="wbContactIdentity" class="muted small">O nome será obtido do seu usuário autenticado no GLPI.</p><button id="wbContactRefreshName" type="button" class="secondary compact">Atualizar nome do GLPI</button></div></div>
+          <label>Mensagem de primeiro contato<textarea id="wbMessage" rows="4" maxlength="2000"></textarea></label>
+          <label>Mensagem de continuidade<textarea id="wbContinuationMessage" rows="4" maxlength="2000"></textarea></label>
+          <div class="settings-save"><button id="wbSave">Salvar preferências</button><p id="wbSettingsStatus" role="status" class="muted small">A mensagem padrão é usada nos próximos contatos.</p></div>
+        </details>
+        <details class="card"><summary>Histórico de conclusões e anexos</summary><button id="wbHistoryBtn" class="secondary">Atualizar histórico</button><div id="wbHistory" class="bounded-list" tabindex="0" aria-label="Histórico de atividades"></div></details>
+      </section>
+
+      <section id="minha-fila" class="workspace-section">
+        <div class="section-title-row"><div><div class="section-kicker">ACOMPANHAMENTO</div><h1>Minha fila</h1><p>Somente chamados ativos atribuídos ao seu usuário. Solucionados e fechados ficam no Histórico de atendimentos.</p></div></div>
+        <div id="myQueueWorkspace"></div>
+      </section>
+      <section id="encerrados" class="workspace-section">
+        <div class="section-title-row"><div><div class="section-kicker">HISTÓRICO TÉCNICO</div><h1>Histórico de atendimentos</h1><p>Separe chamados solucionados que ainda aguardam aprovação dos que já foram fechados com a solução concluída.</p></div></div>
+        <div id="myClosedWorkspace"></div>
+      </section>
+      <section id="operacao" class="workspace-section featured-section">
+        <div class="section-title-row">
+          <div>
+            <div class="section-kicker">FECHAMENTO</div>
+            <h2>Registrar atendimento</h2>
+            <p class="muted">Carregue o chamado, revise o texto e os prints e aplique o atendimento.</p>
+          </div>
+          <div id="workflowRail" class="workflow-rail" aria-label="Etapas do fluxo">
+            <span data-step="ticket">1 · Chamado</span>
+            <span data-step="closure">2 · Registro</span>
+            <span data-step="evidence">3 · Evidências</span>
+            <span data-step="plan">4 · Revisão</span>
+          </div>
+        </div>
+
+        <div class="grid two primary-grid">
+          <section class="card ticket-card priority-card">
+            <div class="section-head compact-head">
+              <div>
+                <div class="section-kicker">CHAMADO</div>
+                <h2>Contexto do GLPI</h2>
+              </div>
+              <span class="badge white-badge">Etapa 1</span>
+            </div>
+            <div class="row search-row">
+              <label class="grow">Número do chamado
+                <input id="ticketId" inputmode="numeric" placeholder="170652" autocomplete="off">
+              </label>
+              <button id="loadTicket" class="search-button">Procurar</button>
+            </div>
+            <div id="ticketSummary" class="summary muted">Nenhum chamado carregado.</div>
+            <div class="actions wrap">
+              <button id="refreshTicket" class="secondary" disabled>Atualizar chamado</button>
+              <button id="newTicket" class="secondary">Outro chamado</button>
+              <button id="syncBtn" class="ghost">Sincronizar catálogos</button>
+            </div>
+            <div id="catalogStats" class="muted small catalog-stats"></div>
+            <section id="closureReviewPanel" class="closure-review-panel" aria-labelledby="closureReviewTitle">
+              <div class="review-panel-head">
+                <div><div class="section-kicker">REVISÃO INTELIGENTE</div><strong id="closureReviewTitle">Título e categoria</strong></div>
+                <span id="reviewConfidence" class="badge neutral">Aguardando fechamento</span>
+              </div>
+              <p id="reviewReason" class="muted small">Carregue o chamado e um fechamento válido. A revisão usa somente catálogos do GLPI e nunca altera nada sem o Dry Run.</p>
+              <label>Título proposto
+                <input id="reviewTitleInput" autocomplete="off" maxlength="180" placeholder="Manter título atual">
+              </label>
+              <label>Categoria proposta
+                <input id="reviewCategoryInput" list="catalogCategoryList" autocomplete="off" placeholder="Manter categoria atual">
+              </label>
+              <div id="reviewAlternatives" class="review-alternatives"></div>
+              <div class="review-actions">
+                <button id="reviewSuggestBtn" type="button" class="secondary compact">Revisar novamente</button>
+                <button id="reviewKeepBtn" type="button" class="ghost compact">Manter atuais</button>
+                <button id="reviewManualBtn" type="button" class="ghost compact">Atores / grupos…</button>
+                <button id="reviewApplyBtn" type="button" class="white-action compact" disabled>Levar ao Dry Run</button>
+              </div>
+            </section>
+          </section>
+
+          <section class="card closure-card priority-card">
+            <div class="section-head compact-head">
+              <div>
+                <div class="section-kicker">FECHAMENTO</div>
+                <h2>Texto estruturado</h2>
+              </div>
+              <span class="flow-chip">Autoanálise</span>
+            </div>
+            <textarea id="closure" rows="18" spellcheck="false" placeholder="[TAREFA:T01]\nmodalidade: REMOTO\nnivel: N1\ntempo: 00:05\nestado: FEITO\n\n**1. Problema Informado**\n...\n[/TAREFA]"></textarea>
+            <div class="actions wrap">
+              <button id="importClipboardBtn" class="white-action">Importar da IA / Clipboard</button>
+              <button id="planBtn" class="secondary">Atualizar revisão</button>
+              <button id="clearDraftBtn" class="ghost">Limpar lançamento</button>
+            </div>
+            <div class="handoff-note"><strong>IA Bridge 2.4.0:</strong> recebe um ou vários chamados, mantém prints em fila com ACK e atualiza esta aba mesmo após suspensão/reconexão. Fechamento novo usa T01–T05; continuações preservam as tarefas existentes.</div>
+            <div id="closureEvidencePreview" class="closure-evidence-preview hidden" aria-live="polite">
+              <div class="closure-preview-head">
+                <span><strong>Prints recebidos</strong><small id="closurePreviewCount" class="muted"></small></span>
+                <span class="muted micro">Clique para ampliar</span>
+              </div>
+              <div id="closurePreviewStrip" class="closure-preview-strip" aria-label="Prévia dos prints deste fechamento"></div>
+            </div>
+            <div id="workflowStatus" class="muted small workflow-status">Cole o fechamento: a análise será automática.</div>
+          </section>
+        </div>
+
+      <section id="evidencias" class="closure-evidence">
+        <div class="section-title-row">
+          <div>
+            <div class="section-kicker">EVIDÊNCIAS</div>
+            <h2>Prints do atendimento</h2>
+            <p class="muted">O print principal do chamado continua sendo apenas contexto. Anexe somente evidências técnicas adicionais.</p>
+          </div>
+        </div>
+        <section class="card evidence-card">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">ARQUIVOS</div>
+              <h2>Mapeamento E01, E02…</h2>
+              <div class="muted small">Solte os prints sem renomear. Se não houver marcador de evidência, o fluxo segue direto para o Dry Run.</div>
+            </div>
+            <span id="evidenceState" class="badge neutral">Aguardando análise</span>
+          </div>
+          <div id="dropzone" class="dropzone" aria-disabled="false">
+            📎 Anexar prints · clique, cole ou arraste
+            <input id="filePicker" type="file" multiple accept="image/png,image/jpeg,image/webp" hidden>
+          </div>
+          <div id="filesList" class="file-grid"></div>
+        </section>
+      </section>
+
+        <details class="card backup-console" id="wbTemplatePanel"><summary><span>∞ Conferências de backup e tarefas prontas</span><span id="wbBackupSummary" class="backup-summary">Carregue um chamado</span></summary><div class="backup-console-head"><div><div class="section-kicker">CONTINUIDADE OPERACIONAL</div><h2>Conferências existentes</h2><p>Edite as tarefas reais sem duplicá-las. Estado, duração e evidências ficam visíveis em uma única linha de operação.</p></div><div id="wbBackupProgress" class="backup-progress-ring" aria-label="Progresso das conferências"><strong>—</strong><span>concluídas</span></div></div><div class="wb-toolbar backup-loadbar"><label>Número do chamado<input id="wbTemplateTicket" type="number" min="1"></label><button id="wbTemplateLoad">Carregar tarefas existentes</button></div><div id="wbTemplateTasks" class="backup-task-grid"></div><div class="backup-actionbar"><div id="wbBackupSelection" class="muted small">Nenhuma tarefa selecionada.</div><div class="actions"><button id="wbTemplateReview" disabled>Revisar alterações</button><button id="wbTemplateApply" class="white-action" disabled>Aplicar nas tarefas existentes</button></div></div><pre id="wbTemplateResult" role="status"></pre></details>
+        <div class="quality-strip" id="qualityStrip">
+          <div>
+            <span class="quality-label">Qualidade do fechamento</span>
+            <strong id="qualitySummary">Aguardando análise.</strong>
+          </div>
+          <div id="qualityWarnings" class="quality-warnings muted">Modalidade e nível são obrigatórios em cada tarefa enviada.</div>
+        </div>
+
+        <div class="grid two secondary-grid">
+          <section class="card parser-card">
+              <div class="section-kicker">TAREFAS</div>
+            <h2>Tarefas detectadas</h2>
+            <div id="tasks"><div class="muted">Nenhuma tarefa analisada.</div></div>
+          </section>
+
+          <section class="card plan-card priority-card">
+            <div class="section-head compact-head">
+              <div>
+                <div class="section-kicker">SEGURANÇA</div>
+                <h2>Revisão antes de aplicar</h2>
+              </div>
+              <span class="badge white-badge">Etapa 4</span>
+            </div>
+            <div id="plan" class="plan muted">Analise o fechamento e carregue o chamado.</div>
+            <details><summary>Resultado após aplicar as tarefas</summary><label>Ao aplicar<select id="wbAfterMode"><option value="tasks">Somente registrar tarefas</option><option value="solve">Registrar tarefas e solucionar</option><option value="close">Registrar tarefas e fechar</option></select></label><label>Solução confirmada por mim<textarea id="wbAfterSolution" placeholder="Preencha para solucionar ou fechar após aplicar. Descreva apenas o resultado validado."></textarea></label></details>
+            <div class="actions right">
+              <button id="executeBtn" class="apply-button" disabled>Aplicar no GLPI</button>
+              <button id="wbFinishCurrent" class="secondary">Concluir chamado…</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="referencias" class="workspace-section">
+        <div class="section-kicker">CONHECIMENTO DO ATENDIMENTO</div><h1>Base da empresa</h1><p class="muted">Encontre ocorrências por palavras do assunto, descrição e tarefas. Consulte referências sem misturar empresas.</p>
+        <div class="card"><div class="wb-toolbar"><label class="grow">Empresa<select id="wbRefEntity"><option value="">Selecione uma empresa</option></select></label><label>Ou usar empresa do chamado<input id="wbRefTicket" type="number" min="1" placeholder="Nº do chamado"></label><label>Atualizados nos últimos dias<input id="wbRefDays" type="number" value="365" min="1" max="3650"></label></div>
+        <div class="wb-toolbar"><label class="grow">Palavras-chave<input id="wbRefQuery" placeholder="Ex.: Outlook autenticação, datastore, certificado…"></label><label>Status<select id="wbRefStatus"><option value="0">Todos</option><option value="1">Novo</option><option value="2">Atribuído</option><option value="3">Planejado</option><option value="4">Pendente</option><option value="5">Solucionado</option><option value="6">Fechado</option></select></label><label>Categoria<select id="wbRefCategory"><option value="0">Todas as categorias</option></select></label><button id="wbFind">Pesquisar chamados</button></div></div>
+        <p id="wbRefNote" role="status">Selecione uma empresa ou informe um chamado para começar.</p><div id="wbCategories" class="category-facets" aria-label="Categorias mais frequentes na consulta"></div><div id="wbRefs"></div>
+
+      </section>
+
+      <section id="bridge-ia" class="workspace-section">
+        <div class="section-title-row">
+          <div>
+            <div class="section-kicker">03 · BRIDGE & IA</div>
+            <h2>Integrações de formalização</h2>
+            <p class="muted">O Bridge 2.4.0 usa o contrato GLPI_ASSISTANT como fonte de verdade, possui outbox persistente com ACK, múltiplos chamados e pode ser ativado em outras IAs web compatíveis.</p>
+          </div>
+          <div class="provider-pills" aria-label="Provedores suportados">
+            <span>ChatGPT</span><span>Gemini</span>
+          </div>
+        </div>
+
+        <div class="grid two bridge-grid">
+          <section class="card bridge-card">
+            <div class="section-head">
+              <div>
+                <div class="section-kicker">CONEXÃO</div>
+                <h2>IA → Assistant</h2>
+                <div class="muted small">Pareie a extensão uma vez. Depois, o fechamento chega por Localhost e a aba aberta é reutilizada.</div>
+              </div>
+              <span id="bridgeStatusBadge" class="badge neutral">Verificando</span>
+            </div>
+            <div class="bridge-status-panel">
+              <div class="bridge-status-row"><span>Status</span><strong id="bridgeStatusText">Consultando…</strong></div>
+              <div class="bridge-status-row"><span>Extensão</span><strong id="bridgeExtensionVersion">—</strong></div>
+              <div class="bridge-status-row"><span>Último contato</span><strong id="bridgeLastSeen">—</strong></div>
+            </div>
+            <div id="bridgePairPanel" class="bridge-pair-panel">
+              <div class="muted small">No Firefox, abra <strong>GLPI Assistant Bridge 2.4.0</strong>. ChatGPT/Gemini funcionam diretamente; outras IAs HTTPS podem ser ativadas explicitamente no domínio atual.</div>
+              <div class="bridge-code-row">
+                <div id="bridgePairCode" class="bridge-code">——— ———</div>
+                <button id="generateBridgeCode" class="white-action">Gerar código</button>
+              </div>
+              <div id="bridgePairHint" class="muted small">O código expira em 5 minutos e só pode ser usado uma vez.</div>
+            </div>
+            <div class="actions wrap">
+              <button id="refreshBridgeStatus" class="secondary">Atualizar status</button>
+              <button id="revokeBridge" class="danger" disabled>Revogar pareamento</button>
+            </div>
+            <div class="bridge-security-note">
+              <strong>Separação de credenciais:</strong> a extensão recebe somente um Bridge Token de rascunho. O User Token do GLPI continua exclusivo do Assistant local.
+            </div>
+          </section>
+
+          <section class="card wa-panel" aria-labelledby="waTitle">
+            <header class="wa-heading"><div><span class="section-kicker">CONTATO COM O CLIENTE</span><h2 id="waTitle">WhatsApp</h2><p class="muted">Primeiro contato automático, com acompanhamento de entrega.</p></div><button id="waRefresh" class="secondary">Atualizar status</button></header>
+            <div class="wa-grid">
+              <section class="wa-block" aria-labelledby="waConnectionTitle"><h3 id="waConnectionTitle">Sua conexão</h3><p id="waStatus" role="status">Consultando conexão…</p><p class="small muted">Conecte uma vez pelo celular. A sessão fica disponível para seus atendimentos.</p><div class="actions"><button id="waConnect" class="secondary">Conectar WhatsApp</button><button id="waShowQR" class="ghost">Mostrar QR Code</button></div><img id="waQR" hidden alt="QR Code para conectar o WhatsApp" width="260" height="260"></section>
+              <section class="wa-block wa-automation" aria-labelledby="waAutomationTitle"><div class="wa-block-heading"><h3 id="waAutomationTitle">Envios automáticos</h3><span id="waAutomationBadge" class="wa-badge">Consultando</span></div><p id="waAutomationStatus" class="small" role="status">Consultando automação…</p><div class="wa-primary-actions"><button id="waEnable" disabled>Retomar envios</button><button id="waPause" class="secondary" hidden>Pausar envios</button></div><p class="wa-scope-note">Somente novas atribuições após a retomada. A fila existente fica fora do envio automático.</p><a href="#central" class="small" id="waPreferences">Mensagem padrão e preferências ↗</a></section>
+            </div>
+            <p id="waNote" class="wa-feedback small" role="status" aria-live="polite">Confira o número conectado antes de retomar os envios.</p>
+            <details class="wa-history" open><summary>Atividade recente <span id="waHistoryCount" class="wa-count">0</span></summary><div id="waHistory" class="bounded-list"></div></details>
+            <p class="wa-footnote">Integração não oficial. “Aceito” indica que o WAHA recebeu o pedido; “Entregue” depende da confirmação do WhatsApp.</p>
+          </section>
+          <section class="card bridge-inbox-card">
+            <div class="section-head">
+              <div>
+                <div class="section-kicker">RECEBIDOS</div>
+                <h2>Fechamentos recebidos</h2>
+                <div class="muted small">Se houver um rascunho em andamento, novos fechamentos ficam na fila em vez de sobrescrevê-lo.</div>
+              </div>
+              <button id="refreshBridgeInbox" class="secondary compact">Atualizar</button>
+            </div>
+            <div id="bridgeInbox" class="bridge-inbox muted">Nenhum handoff recebido.</div>
+          </section>
+        </div>
+
+        <section class="card prompt-card">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">PROMPT BASE</div>
+              <h2>Prompt oficial de formalização e detecção</h2>
+              <div class="muted small">Contrato 3.2: fechamento novo T01–T05, complementação somente das etapas faltantes, lote multi-chamado isolado por ID e evidências nunca compartilhadas entre chamados.</div>
+            </div>
+            <button id="copyAiPrompt" class="white-action">Copiar prompt</button>
+          </div>
+          <div class="prompt-rules">
+            <span>Modalidade obrigatória</span>
+            <span>Nível obrigatório</span>
+            <span>Tempo informado ou estimativa autorizada</span>
+            <span>Revisão antes de aplicar</span>
+            <span>T01–T05 no fechamento completo</span><span>Complementação flexível</span>
+          </div>
+          <details><summary>Ler o prompt desta versão</summary><pre id="wbPromptText" tabindex="0">Carregando prompt…</pre></details><div id="promptCopyStatus" class="muted small">Use o mesmo prompt no ChatGPT ou Gemini.</div>
+        </section>
+      </section>
+
+      <section id="administracao" class="workspace-section">
+        <div class="section-title-row">
+          <div>
+            <div class="section-kicker">04 · ADMINISTRAÇÃO</div>
+            <h2>Administração</h2>
+            <p class="muted">Encontre a atividade recente e abra um chamado para ajustar campos, responsáveis e tarefas.</p>
+          </div>
+        </div>
+
+        <section class="card"><div class="section-head"><div><h2>Atividade recente no GLPI</h2><p id="wbAdminNote" class="muted">Consulte os chamados para visualizar as edições recentes.</p></div><button id="wbAdminRefresh" class="secondary">Atualizar atividade</button></div><div id="wbAdminRecent" class="bounded-list" tabindex="0" aria-label="Chamados recentes"></div></section>
+        <div class="card wb-toolbar"><label class="grow">Abrir chamado para administrar<input id="wbAdminTicket" type="number" min="1" placeholder="Número do chamado"></label><button id="wbAdminLoad">Carregar chamado</button><strong id="wbAdminCurrent">Nenhum chamado selecionado</strong></div>
+        <section id="ticketEditor" class="card manual-editor hidden">
+          <div class="editor-heading">
+            <div>
+              <div class="section-kicker">EDIÇÃO MANUAL</div>
+              <strong>Informações do chamado</strong>
+            </div>
+            <span class="badge white-badge">Chamado carregado</span>
+          </div>
+          <div class="editor-grid two-cols">
+            <label>Título
+              <input id="editTitle" autocomplete="off">
+            </label>
+            <label>Categoria
+              <input id="editCategory" list="catalogCategoryList" autocomplete="off" placeholder="Digite para buscar…">
+            </label>
+            <label>Status
+              <select id="editStatus">
+                <option value="1">Novo</option>
+                <option value="2">Processando (atribuído)</option>
+                <option value="3">Processando (planejado)</option>
+                <option value="4">Pendente</option>
+                <option value="5">Solucionado</option>
+                <option value="6">Fechado</option>
+              </select>
+            </label>
+            <label>Prioridade
+              <select id="editPriority">
+                <option value="1">Muito baixa</option>
+                <option value="2">Baixa</option>
+                <option value="3">Média</option>
+                <option value="4">Alta</option>
+                <option value="5">Muito alta</option>
+                <option value="6">Crítica</option>
+              </select>
+            </label>
+          </div>
+          <div class="actions right">
+            <button id="saveTicketFields" class="white-action">Salvar campos</button>
+          </div>
+
+          <div class="actor-editor">
+            <div class="actor-column">
+              <div class="actor-title">Requerentes</div>
+              <div id="requesterChips" class="actor-chips"></div>
+              <div class="inline-add actor-action-row">
+                <input id="addRequester" list="catalogUserList" placeholder="Buscar requerente…">
+                <button id="replaceRequesterBtn" class="white-action compact" title="Substitui os requerentes atuais pelo usuário selecionado">Substituir</button>
+                <button id="addRequesterBtn" class="secondary compact" title="Mantém os atuais e adiciona outro requerente">Adicionar</button>
+              </div>
+              <div class="muted micro">Use <strong>Substituir</strong> para troca de requerente; <strong>Adicionar</strong> mantém os atuais.</div>
+            </div>
+            <div class="actor-column">
+              <div class="actor-title">Técnicos atribuídos</div>
+              <div id="assignedUserChips" class="actor-chips"></div>
+              <div class="inline-add actor-action-row">
+                <input id="addAssignedUser" list="catalogUserList" placeholder="Buscar técnico…">
+                <button id="replaceAssignedUserBtn" class="white-action compact" title="Substitui os técnicos atualmente atribuídos pelo usuário selecionado">Substituir</button>
+                <button id="addAssignedUserBtn" class="secondary compact" title="Mantém os atuais e adiciona outro técnico">Adicionar</button>
+              </div>
+              <div class="muted micro">Use <strong>Substituir</strong> para trocar o técnico; <strong>Adicionar</strong> mantém os demais atribuídos.</div>
+            </div>
+            <div class="actor-column">
+              <div class="actor-title">Grupos atribuídos</div>
+              <div id="assignedGroupChips" class="actor-chips"></div>
+              <div class="inline-add">
+                <input id="addAssignedGroup" list="catalogGroupList" placeholder="Ex.: SUPORTE N2 / REMOTO">
+                <button id="addAssignedGroupBtn" class="secondary compact">Adicionar</button>
+              </div>
+            </div>
+            <div class="actor-column">
+              <div class="actor-title">Observadores</div>
+              <div id="observerChips" class="actor-chips"></div>
+              <div class="inline-add">
+                <input id="addObserver" list="catalogUserList" placeholder="Adicionar observador">
+                <button id="addObserverBtn" class="secondary compact">Adicionar</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card history-card">
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">HISTÓRICO DO CHAMADO</div>
+              <h2>Tarefas já existentes</h2>
+              <div class="muted small">Visualize o que já foi registrado e exclua uma tarefa incorreta sem abrir o GLPI.</div>
+            </div>
+            <div class="history-actions">
+              <button id="selectAllTasks" class="ghost compact" disabled>Selecionar todas</button>
+              <button id="deleteSelectedTasks" class="danger compact" disabled>Excluir selecionadas</button>
+              <button id="refreshTasks" class="secondary" disabled>Atualizar tarefas</button>
+            </div>
+          </div>
+          <div id="manualTaskCreator" class="manual-task-creator hidden">
+            <div class="editor-heading">
+              <div>
+                <div class="section-kicker">NOVA TAREFA</div>
+                <strong>Registro manual</strong>
+              </div>
+              <button id="toggleManualTask" class="ghost compact">Recolher</button>
+            </div>
+            <textarea id="manualTaskContent" rows="5" placeholder="Descreva a tarefa que deve ser criada no GLPI…"></textarea>
+            <div class="editor-grid four-cols">
+              <label>Tempo
+                <input id="manualTaskTime" value="00:05" placeholder="00:05">
+              </label>
+              <label>Estado
+                <select id="manualTaskState"><option>FEITO</option><option>A FAZER</option></select>
+              </label>
+              <label>Técnico
+                <input id="manualTaskTech" list="catalogUserList" placeholder="Vazio = usuário atual">
+              </label>
+              <label>Modalidade / grupo
+                <input id="manualTaskModality" list="catalogGroupList" value="REMOTO">
+              </label>
+            </div>
+            <div class="actions right"><button id="createManualTask" class="white-action">Criar tarefa</button></div>
+          </div>
+          <div id="existingTasks" tabindex="0" aria-label="Tarefas do chamado selecionado" class="existing-tasks muted">Carregue um chamado para visualizar as tarefas.</div>
+        </section>
+
+        <section class="card log-card">
+          <details>
+            <summary>Log técnico</summary>
+            <pre id="log" class="result"></pre>
+          </details>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <datalist id="catalogCategoryList"></datalist>
+  <datalist id="catalogUserList"></datalist>
+  <datalist id="catalogGroupList"></datalist>
+
+  <div class="creator-watermark" aria-hidden="true">Made by ZeldrisMercy</div>
+
+  <dialog id="evidencePreviewDialog" class="evidence-preview-dialog" aria-labelledby="evidencePreviewTitle">
+    <form method="dialog" class="evidence-preview-close-row"><button class="secondary compact" aria-label="Fechar prévia">×</button></form>
+    <div class="evidence-preview-stage"><img id="evidencePreviewImage" alt="Print ampliado"></div>
+    <div class="evidence-preview-caption"><strong id="evidencePreviewTitle">Print</strong><span id="evidencePreviewName" class="muted small"></span></div>
+  </dialog>
+  <dialog id="applySuccessDialog" class="apply-success-dialog" aria-labelledby="applySuccessTitle">
+    <div class="success-aura" aria-hidden="true">∞</div>
+    <div class="success-mark" aria-hidden="true">∞</div>
+    <div class="section-kicker">TRANSMISSÃO CONFIRMADA</div>
+    <h2 id="applySuccessTitle">Aplicação concluída no GLPI</h2>
+    <p id="applySuccessSubtitle" class="muted">As escritas foram confirmadas pela API.</p>
+    <div id="applySuccessStats" class="success-stat-grid"></div>
+    <section class="success-detail-shell" aria-label="Detalhes da aplicação">
+      <div class="success-detail-tabs" role="tablist" aria-label="Detalhes do envio">
+        <button id="applySuccessVisualTab" class="success-detail-tab active" type="button" role="tab" aria-selected="true" aria-controls="applySuccessVisual">Resumo visual</button>
+        <button id="applySuccessLogTab" class="success-detail-tab" type="button" role="tab" aria-selected="false" aria-controls="applySuccessLog">Log técnico</button>
+      </div>
+      <div id="applySuccessVisual" class="success-visual-panel" role="tabpanel" aria-labelledby="applySuccessVisualTab">
+        <div id="applySuccessAppliedList" class="success-applied-list"></div>
+      </div>
+      <pre id="applySuccessLog" class="success-log-panel" role="tabpanel" aria-labelledby="applySuccessLogTab" hidden></pre>
+    </section>
+    <div class="actions success-actions"><button id="applySuccessOpenGlpi" type="button" class="ghost">Abrir no GLPI ↗</button><button id="applySuccessStay" type="button" class="secondary">Manter chamado aberto</button><button id="applySuccessNext" type="button" class="white-action">Próximo chamado</button></div>
+  </dialog>
+  <dialog id="wbDialog"><form method="dialog"><button class="secondary wb-dialog-close" aria-label="Fechar">×</button></form><h2>Revisar conclusão</h2><p>Confirme o resultado real de cada atendimento. Esta ação registra uma solução; não cria as tarefas da formalização.</p><label>Resultado no GLPI<select id="wbTarget"><option value="solve">Solucionado — aguardar aceite</option><option value="close">Fechado — encerrar agora, se meu perfil permitir</option></select></label><div id="wbSolutions"></div><label class="check"><input id="wbOk" type="checkbox">Revisei os atendimentos e confirmo que podem ser concluídos.</label><div class="actions"><button id="wbReviewSolutions">Validar revisão</button><button id="wbApplySolutions" disabled>Aplicar conclusão</button></div><pre id="wbSolutionResult" role="status"></pre></dialog>
+  <script src="/static/app.js?v=3.4.0-rc4"></script>
+  <script src="/static/contact-template.js?v=3.4.0-rc4"></script>
+  <script src="/static/contact-editor.js?v=3.4.0-rc4"></script>
+  <script src="/static/workbench.js?v=3.4.0-rc4"></script>
+  <script src="/static/my-tickets.js?v=3.4.0-rc4"></script>
+  <link rel="stylesheet" href="/static/closure-queue.css?v=3.4.0-rc4">
+  <script src="/static/batch-receipt.js?v=3.4.0-rc4"></script>
+  <script src="/static/closure-queue.js?v=3.4.0-rc4"></script>
+  <link rel="stylesheet" href="/static/whatsapp.css?v=3.4.0-rc4">
+  <script src="/static/whatsapp.js?v=3.4.0-rc4"></script>
+<link rel="stylesheet" href="/static/proactive.css?v=3.4.0-rc4">
+<script src="/static/proactive.js?v=3.4.0-rc4"></script>
+</body>
+</html>

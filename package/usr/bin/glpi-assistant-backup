@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Private backup; SQLite uses its backup API, never copies a live WAL database."""
+import argparse, os, sqlite3, tarfile, tempfile, time
+from pathlib import Path
+
+
+def backup(source, destination):
+    source, destination = Path(source), Path(destination)
+    if not source.is_dir(): raise ValueError('Diretório de dados ausente.')
+    destination.mkdir(parents=True, exist_ok=True, mode=0o700)
+    destination.chmod(0o700)
+    if destination.resolve().is_relative_to(source.resolve()):
+        raise ValueError('Backup deve ficar fora do diretório de origem.')
+    name = 'glpi-assistant-'+time.strftime('%Y%m%d-%H%M%S')+'-'+os.urandom(3).hex()+'.tar.gz'
+    target = destination/name
+    with tempfile.TemporaryDirectory(prefix='glpi-backup-') as tmp:
+        database = source/'app.db'
+        snapshot = Path(tmp)/'app.db'
+        if database.exists():
+            with sqlite3.connect(database.as_uri()+'?mode=ro', uri=True) as src, sqlite3.connect(snapshot) as dst:
+                src.backup(dst)
+                if dst.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
+                    raise ValueError('Integridade do banco não confirmada; backup cancelado.')
+        fd, staged = tempfile.mkstemp(prefix='.backup-', dir=destination)
+        try:
+            with os.fdopen(fd,'wb') as stream:
+                with tarfile.open(fileobj=stream,mode='w:gz') as archive:
+                    for p in sorted(source.rglob('*')):
+                        if p.is_symlink() or not p.is_file() or p.name in ('app.db','app.db-wal','app.db-shm'):continue
+                        archive.add(p,arcname=str(Path('data')/p.relative_to(source)),recursive=False)
+                    if snapshot.exists(): archive.add(snapshot,arcname='data/app.db')
+                stream.flush();os.fsync(stream.fileno())
+            os.replace(staged,target)
+        finally:
+            if os.path.exists(staged):os.unlink(staged)
+    return target
+
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description='Backup privado; pare o Assistant para consistência entre banco e anexos.')
+    parser.add_argument('--source',type=Path,default=Path('/var/lib/glpi-assistant/data'))
+    parser.add_argument('--destination',type=Path,default=Path('/var/backups/glpi-assistant'))
+    args=parser.parse_args()
+    try: print(backup(args.source.resolve(),args.destination.resolve()))
+    except Exception as exc: raise SystemExit('Backup não concluído: '+str(exc))

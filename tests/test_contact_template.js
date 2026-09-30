@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict');
+require('../package/usr/lib/glpi-assistant/app/static/contact-template.js');
+const c=globalThis.ContactTemplate;
+const context={chamado:901159,nome:'Marina',tecnico:'Alex',assunto:'Backup & rede',empresa:'Exemplo'};
+assert.equal(c.greeting(new Date('2026-09-12T08:00:00Z'),'America/Sao_Paulo'),'Bom dia');
+assert.equal(c.greeting(new Date('2026-09-12T14:59:00Z'),'America/Sao_Paulo'),'Bom dia');
+assert.equal(c.greeting(new Date('2026-09-12T15:00:00Z'),'America/Sao_Paulo'),'Boa tarde');
+assert.equal(c.greeting(new Date('2026-09-12T21:00:00Z'),'America/Sao_Paulo'),'Boa noite');
+assert.equal(c.greeting(new Date('2026-09-13T03:00:00Z'),'America/Sao_Paulo'),'Boa noite');
+assert.match(c.render(c.defaultMessage,context),/Sou Alex/);
+assert.equal(c.render('Chamado |/Chamado: {assunto}',context),'Chamado 901159: Backup & rede');
+assert.equal(c.render('Chamado {chamado}: {nome}',{...context,nome:'$& {tecnico} <script>'}),'Chamado 901159: $& {tecnico} <script>');
+for(const bad of ['Sem número','{Chamado}','{chamado','{chamdo}','{{chamado}}','{chamado} |/errado','Chamado 170424 e {chamado}'])assert.throws(()=>c.validate(bad));
+assert.throws(()=>c.render(c.defaultMessage,{...context,tecnico:''}));
+assert.throws(()=>c.render(c.defaultMessage,{...context,chamado:-1}));
+assert.throws(()=>c.render(c.defaultMessage,context,new Date(),'not-a-zone'));
+console.log('Mensagens: saudação por fuso, marcadores, ID obrigatório e substituição literal verificados.');

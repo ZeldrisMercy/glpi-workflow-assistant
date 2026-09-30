@@ -1,0 +1,51 @@
+[GLPI_ASSISTANT:900001]
+
+[TAREFA:T01]
+modalidade: REMOTO
+nivel: N1
+tempo: 00:02
+estado: FEITO
+
+**1. Problema Informado**
+Falha na conexão de VPN em ambiente fictício.
+[/TAREFA]
+
+[TAREFA:T02]
+modalidade: REMOTO
+nivel: N1
+tempo: 00:02
+estado: FEITO
+
+**2. Problema Identificado**
+O perfil de rede de teste estava desatualizado.
+[/TAREFA]
+
+[TAREFA:T03]
+modalidade: REMOTO
+nivel: N1
+tempo: 00:02
+estado: FEITO
+
+**3. Diagnóstico**
+Comparados os perfis e a conectividade em duas redes de laboratório.
+[/TAREFA]
+
+[TAREFA:T04]
+modalidade: REMOTO
+nivel: N1
+tempo: 00:02
+estado: FEITO
+
+**4. Solução Aplicada**
+Perfil corrigido e conexão estabelecida no laboratório.
+[/TAREFA]
+
+[TAREFA:T05]
+modalidade: REMOTO
+nivel: N1
+tempo: 00:02
+estado: FEITO
+
+**5. Validação do Cliente**
+Teste técnico concluído; confirmação da pessoa solicitante permanece pendente.
+[/TAREFA]

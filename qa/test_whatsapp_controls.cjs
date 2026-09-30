@@ -1,0 +1,10 @@
+const fs=require('fs'),assert=require('node:assert/strict'),{JSDOM}=require(process.env.JSDOM_PATH||'jsdom');
+const path=require('path'),root=path.join(__dirname,'../package/usr/lib/glpi-assistant/app/static');
+(async()=>{const d=new JSDOM(fs.readFileSync(path.join(root,'index.html'),'utf8'),{runScripts:'outside-only',url:'http://localhost:8765'}),w=d.window;let enabled=false,monitor=true,calls=[];w.setInterval=()=>{};
+w.fetch=async(p,o={})=>{if(o.method==='PUT'){calls.push(JSON.parse(o.body));enabled=JSON.parse(o.body).enabled;}return {ok:true,json:async()=>({status:'WORKING',enabled,monitor_enabled:monitor,baseline_ready:enabled,events:[{ticket_id:123,at:1800000000,initial:true,status:'aceito pelo WAHA',delivery_name:'DEVICE',phone:'••••1234',detail:'Confirmada'}]})};};
+w.eval(fs.readFileSync(path.join(root,'whatsapp.js'),'utf8'));await new Promise(r=>setImmediate(r));const q=id=>w.document.getElementById(id);
+assert(!q('waEnable').hidden);assert(!q('waEnable').disabled);assert(q('waPause').hidden);assert(q('waHistory').textContent.includes('Entregue'));
+await q('waEnable').onclick();assert.deepEqual(calls,[{enabled:true}]);assert(q('waEnable').hidden);assert(!q('waPause').hidden);
+await q('waPause').onclick();assert.equal(calls[1].enabled,false);assert(!q('waEnable').hidden);
+monitor=false;await q('waRefresh').onclick();assert(q('waEnable').disabled);assert.equal(calls.length,2);
+d.window.close();console.log('PASS: retomar/pausar diretos, estados exclusivos, monitor inativo e entrega legível.');})().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,0 +1,44 @@
+{
+  "application": "3.4.0-rc4",
+  "debian": "3.4.0~rc4-1",
+  "bridge": "2.4.0",
+  "python": {
+    "tests": "260",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  "javascript": {
+    "scripts": 22,
+    "syntax_files": 16,
+    "failed": 0
+  },
+  "layout": [
+    {
+      "width": 480,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 768,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 1280,
+      "horizontal_overflow": false
+    }
+  ],
+  "remote_glpi_tested": false,
+  "docker_runtime_tested": false,
+  "real_whatsapp_delivery_tested": false,
+  "review": "inline pelo autor, conforme execução autorizada sem subagentes",
+  "evidence": [
+    "qa/rc4-results.xml",
+    "qa/rc4-node-tests.json",
+    "qa/proactive-previews/layout.json"
+  ],
+  "limitations": [
+    "Upload incerto exige conferência manual",
+    "Sem limpeza automática dos registros proativos nesta candidata",
+    "WAHA mantém a imagem estável anterior; fork experimental não ativado"
+  ]
+}

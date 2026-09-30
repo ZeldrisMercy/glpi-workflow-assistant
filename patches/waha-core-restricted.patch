@@ -1,0 +1,99 @@
+diff --git a/src/main.ts b/src/main.ts
+index 64dec7e..c134dee 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -1,4 +1,5 @@
+ import { injectTraceContext } from './tracing'; // MUST be line 1, before @nestjs/* and before pino
++import { restrictedRoutes, restrictedBodies } from './core/assistant-restricted';
+ import { NestFactory } from '@nestjs/core';
+ import { WsAdapter } from '@nestjs/platform-ws';
+ import { AppBootstrapService } from '@waha/plugins/AppBootstrapService';
+@@ -68,6 +69,13 @@ async function loadModules(): Promise<typeof AppModuleCore> {
+ }
+ 
+ async function bootstrap() {
++  const assistantRestricted = process.env.WAHA_ASSISTANT_RESTRICTED === 'true';
++  if (assistantRestricted) {
++    const disabled = ['WAHA_DASHBOARD_ENABLED', 'WHATSAPP_SWAGGER_ENABLED', 'WAHA_EVENTS_DOWNLOAD_MEDIA', 'WAHA_API_DOWNLOAD_MEDIA', 'WHATSAPP_DOWNLOAD_MEDIA'];
++    if (!process.env.WAHA_API_KEY || process.env.WHATSAPP_DEFAULT_ENGINE !== 'WEBJS' || disabled.some((key) => process.env[key] !== 'false')) {
++      throw new Error('Restricted profile requires API key, WEBJS and disabled panels/media');
++    }
++  }
+   const version = getWAHAVersion();
+   logger.info(`WAHA (WhatsApp HTTP API) - Running ${version} version...`);
+   const AppModule = await loadModules();
+@@ -85,15 +93,24 @@ async function bootstrap() {
+   app.useGlobalInterceptors(new LoggerErrorInterceptor());
+ 
+   app.useGlobalFilters(new AllExceptionsFilter());
+-  app.enableCors({ exposedHeaders: ['traceparent', 'tracestate'] });
++  if (assistantRestricted) {
++    app.use(restrictedRoutes);
++    app.getHttpServer().prependListener('upgrade', (request, socket) => socket.destroy());
++  } else {
++    app.enableCors({ exposedHeaders: ['traceparent', 'tracestate'] });
++  }
+   app.use(injectTraceContext);
+   // Ideally, we should apply it globally.
+   // but for now we added it ValidationPipe on Controller or endpoint level
+   // app.useGlobalPipes(new ValidationPipe({ transform: true }));
+ 
+   // Allow sending big body - for images and attachments
+-  app.use(json({ limit: '50mb' }));
+-  app.use(urlencoded({ limit: '50mb', extended: false }));
++  app.use(json({ limit: assistantRestricted ? '32kb' : '50mb' }));
++  if (assistantRestricted) {
++    app.use(restrictedBodies);
++  } else {
++    app.use(urlencoded({ limit: '50mb', extended: false }));
++  }
+   app.useWebSocketAdapter(new WsAdapter(app));
+ 
+   // Run app configuration hooks contributed by modules (e.g. swagger)
+diff --git a/src/core/assistant-restricted.ts b/src/core/assistant-restricted.ts
+new file mode 100644
+index 0000000..2a9a46a
+--- /dev/null
++++ b/src/core/assistant-restricted.ts
+@@ -0,0 +1,41 @@
++import type { NextFunction, Request, Response } from 'express';
++
++// Opt-in deployment profile for the local GLPI Assistant. Existing API-key
++// authentication remains mandatory and is applied by the normal WAHA guards.
++export function restrictedRoute(method: string, url: string): boolean {
++  if (method === 'GET') {
++    if (['/api/sessions/default', '/api/sessions?all=true', '/api/default/auth/qr'].includes(url)) return true;
++    return /^\/api\/default\/chats\/\d{10,15}%40c\.us\/messages\/[A-Za-z0-9%._-]{1,750}\?downloadMedia=false$/.test(url);
++  }
++  return method === 'POST' && ['/api/sessions', '/api/sessions/default/start', '/api/sendText'].includes(url);
++}
++
++export function restrictedBody(url: string, body: unknown): boolean {
++  if (!body || typeof body !== 'object' || Array.isArray(body)) return false;
++  const value = body as Record<string, unknown>;
++  const keys = Object.keys(value).sort().join(',');
++  if (url === '/api/sessions') return keys === 'name,start' && value.name === 'default' && value.start === true;
++  if (url === '/api/sessions/default/start') return keys === '';
++  if (url !== '/api/sendText') return false;
++  return keys === 'chatId,linkPreview,session,text' && value.session === 'default'
++    && typeof value.chatId === 'string' && /^\d{10,15}@c\.us$/.test(value.chatId)
++    && typeof value.text === 'string' && value.text.length > 0 && value.text.length <= 4000
++    && value.linkPreview === false;
++}
++
++export function restrictedRoutes(req: Request, res: Response, next: NextFunction) {
++  // Browser access is unnecessary: only the local Assistant calls this API.
++  if (req.headers.origin || !restrictedRoute(req.method, req.originalUrl)) {
++    res.status(403).json({ error: 'Disabled in Assistant restricted mode' });
++    return;
++  }
++  next();
++}
++
++export function restrictedBodies(req: Request, res: Response, next: NextFunction) {
++  if (req.method === 'POST' && !restrictedBody(req.originalUrl, req.body)) {
++    res.status(400).json({ error: 'Invalid restricted request' });
++    return;
++  }
++  next();
++}

@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements-dev.txt
+            package/usr/lib/glpi-assistant/app/requirements.txt
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Install Python dependencies
+        run: python -m pip install -r package/usr/lib/glpi-assistant/app/requirements.txt -r requirements-dev.txt
+      - name: Install JavaScript test dependencies
+        run: npm ci
+      - name: Python regression suite
+        env:
+          GLPI_ASSISTANT_DATA: ${{ runner.temp }}/glpi-assistant-tests
+        run: python -m pytest tests qa/test_waha_installer.py -q
+      - name: JavaScript syntax and regression suite
+        run: python scripts/check_javascript.py
+      - name: Build deterministic portfolio artifacts
+        run: python scripts/build_portfolio.py
+      - name: Block credentials and customer identifiers
+        run: |
+          ! grep -RInE '(Session-Token|App-Token):[[:space:]]*[A-Za-z0-9]{20,}|WAHA_API_KEY=[A-Za-z0-9_-]{20,}|https?://[^ ]*\.corp\b' . \
+            --exclude-dir=.git --exclude-dir=.venv --exclude-dir=node_modules --exclude-dir=dist \
+            --exclude=ci.yml --exclude='.env.example'
