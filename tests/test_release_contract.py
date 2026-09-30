@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 import hashlib
 import json
+import struct
+import xml.etree.ElementTree as ET
 
 from scripts.audit_publication import scan_paths
 from scripts.publication_policy import DEFAULT_POLICY
@@ -114,3 +116,52 @@ def test_sbom_scope_is_explicit(tmp_path: Path) -> None:
     assert sbom["bomFormat"] == "CycloneDX"
     assert properties["glpi-workflow-assistant:scope"] == "Python and npm application dependencies only"
     assert properties["glpi-workflow-assistant:excluded"] == "Docker OS, browser runtime and WAHA transitive components"
+
+
+def test_social_preview_dimensions() -> None:
+    data = (ROOT / "docs/assets/brand/social-preview.png").read_bytes()
+
+    assert data[:8] == b"\x89PNG\r\n\x1a\n"
+    assert struct.unpack(">II", data[16:24]) == (1280, 640)
+
+
+def test_svg_assets_have_titles() -> None:
+    expected = {
+        ROOT / "docs/assets/brand/mark.svg",
+        ROOT / "docs/assets/brand/hero.svg",
+        ROOT / "docs/assets/brand/architecture-overview.svg",
+        ROOT / "docs/assets/brand/social-preview.svg",
+        ROOT / "package/usr/lib/glpi-assistant/app/static/favicon.svg",
+        ROOT / "extension/icons/icon.svg",
+    }
+
+    for path in expected:
+        root = ET.parse(path).getroot()
+        title = root.find("{http://www.w3.org/2000/svg}title")
+        assert title is not None and title.text and title.text.strip(), path
+
+
+def test_readmes_link_each_other() -> None:
+    english = (ROOT / "README.md").read_text(encoding="utf-8")
+    portuguese = (ROOT / "README.pt-BR.md").read_text(encoding="utf-8")
+
+    assert "[Português](README.pt-BR.md)" in english
+    assert "[English](README.md)" in portuguese
+
+
+def test_readmes_name_beta_and_agpl() -> None:
+    for path in (ROOT / "README.md", ROOT / "README.pt-BR.md"):
+        text = path.read_text(encoding="utf-8").casefold()
+        assert "beta" in text
+        assert "agpl-3.0-or-later" in text
+        assert "independent and unofficial" in text or "independente e não oficial" in text
+
+
+def test_readme_claims_match_release_manifest() -> None:
+    manifest = json.loads((ROOT / "docs/project/release-manifest.json").read_text(encoding="utf-8"))
+    for path in (ROOT / "README.md", ROOT / "README.pt-BR.md"):
+        text = path.read_text(encoding="utf-8")
+        assert manifest["version"] in text
+        assert manifest["bridge_version"] in text
+        assert "RC3" not in text and "RC4" not in text
+        assert "tests passed" not in text.casefold() and "testes aprovados" not in text.casefold()

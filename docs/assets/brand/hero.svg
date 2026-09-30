@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">GLPI Workflow Assistant technical workflow</title>
+  <desc id="desc">Dark technical banner showing prompt, structured draft, Dry Run, human approval and GLPI as a controlled flow.</desc>
+  <defs>
+    <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#080b12"/><stop offset="1" stop-color="#15182a"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#38bdf8"/><stop offset=".55" stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#263149" stroke-width="1" opacity=".35"/></pattern>
+  </defs>
+  <rect width="1200" height="360" rx="28" fill="url(#surface)"/>
+  <rect width="1200" height="360" rx="28" fill="url(#grid)"/>
+  <rect x="44" y="44" width="76" height="76" rx="20" fill="#0d1320" stroke="#38bdf8" stroke-width="3"/>
+  <path d="M65 70h24c13 0 23 10 23 23s-10 23-23 23H77" fill="none" stroke="url(#accent)" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="98" cy="116" r="10" fill="#0c1418" stroke="#22c55e" stroke-width="4"/>
+  <path d="m94 116 3 3 6-7" fill="none" stroke="#86efac" stroke-width="3"/>
+  <text x="148" y="74" fill="#f8fafc" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="29" font-weight="700">GLPI WORKFLOW ASSISTANT</text>
+  <text x="148" y="108" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="18">local-first · human-approved · auditable</text>
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="15" text-anchor="middle">
+    <g transform="translate(44 205)"><rect width="180" height="72" rx="14" fill="#101827" stroke="#334155"/><text x="90" y="31" fill="#38bdf8">01 / PROMPT</text><text x="90" y="53" fill="#cbd5e1">structured intent</text></g>
+    <path d="M224 241h35" stroke="#475569" stroke-width="2"/><path d="m252 234 9 7-9 7" fill="none" stroke="#38bdf8" stroke-width="2"/>
+    <g transform="translate(264 205)"><rect width="180" height="72" rx="14" fill="#101827" stroke="#334155"/><text x="90" y="31" fill="#818cf8">02 / DRAFT</text><text x="90" y="53" fill="#cbd5e1">fields + evidence</text></g>
+    <path d="M444 241h35" stroke="#475569" stroke-width="2"/><path d="m472 234 9 7-9 7" fill="none" stroke="#818cf8" stroke-width="2"/>
+    <g transform="translate(484 205)"><rect width="180" height="72" rx="14" fill="#101827" stroke="#6366f1"/><text x="90" y="31" fill="#a5b4fc">03 / DRY RUN</text><text x="90" y="53" fill="#cbd5e1">bound execution plan</text></g>
+    <path d="M664 241h35" stroke="#475569" stroke-width="2"/><path d="m692 234 9 7-9 7" fill="none" stroke="#a855f7" stroke-width="2"/>
+    <g transform="translate(704 205)"><rect width="180" height="72" rx="14" fill="#101827" stroke="#a855f7"/><text x="90" y="31" fill="#d8b4fe">04 / APPROVE</text><text x="90" y="53" fill="#cbd5e1">human checkpoint</text></g>
+    <path d="M884 241h35" stroke="#475569" stroke-width="2"/><path d="m912 234 9 7-9 7" fill="none" stroke="#22c55e" stroke-width="2"/>
+    <g transform="translate(924 205)"><rect width="232" height="72" rx="14" fill="#0e1917" stroke="#22c55e"/><text x="116" y="31" fill="#86efac">05 / GLPI</text><text x="116" y="53" fill="#cbd5e1">write + verify receipt</text></g>
+  </g>
+  <text x="44" y="326" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="13">PUBLIC BETA · AGPL-3.0-OR-LATER · INDEPENDENT &amp; UNOFFICIAL</text>
+</svg>

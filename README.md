@@ -1,133 +1,158 @@
-# GLPI Assistant
+<p align="center">
+  <img src="docs/assets/brand/hero.svg" alt="GLPI Workflow Assistant: prompt, structured draft, Dry Run, human approval and GLPI" width="100%">
+</p>
 
-**Assistente Linux local para fluxos GLPI com revisão humana, Dry Run, evidências e criação proativa de chamados.**
+<p align="center">
+  <a href="docs/project/release-manifest.json"><img alt="Version 3.4.0-beta.1" src="https://img.shields.io/badge/version-3.4.0--beta.1-6366f1"></a>
+  <a href="LICENSE"><img alt="AGPL-3.0-or-later" src="https://img.shields.io/badge/license-AGPL--3.0--or--later-a855f7"></a>
+  <a href=".github/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/badge/CI-required-22c55e"></a>
+  <a href="docs/installation.md"><img alt="Linux" src="https://img.shields.io/badge/platform-Linux-f8fafc?logo=linux&logoColor=111827"></a>
+  <img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-38bdf8?logo=python&logoColor=white">
+  <img alt="Public beta" src="https://img.shields.io/badge/status-public_beta-f59e0b">
+</p>
 
-[![Version](https://img.shields.io/badge/version-3.4.0--rc4-6d5dfc)](docs/CHANGELOG_3.4.0-rc4.md)
-[![Bridge](https://img.shields.io/badge/Browser%20Bridge-2.4.0-2563eb)](docs/browser-bridge.md)
-[![CI](https://github.com/ZeldrisMercy/glpi-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/ZeldrisMercy/glpi-assistant/actions/workflows/ci.yml)
-[![Platform](https://img.shields.io/badge/platform-Linux-f5c542?logo=linux&logoColor=111)](docs/installation.md)
-[![License](https://img.shields.io/badge/license-under%20review-64748b)](LEGAL_AND_OWNERSHIP.md)
+<p align="center"><strong>An independent, local-first workflow assistant for GLPI with Dry Run, human approval, evidence handling and auditable automation.</strong></p>
 
-[English](README.en.md) · [Instalação](docs/installation.md) · [Arquitetura](docs/architecture.md) · [Segurança](SECURITY.md) · [Validação](docs/validation.md)
+<p align="center">
+  <strong><a href="README.pt-BR.md">Português</a></strong> · Quick start · Architecture · Security · Evidence
+</p>
 
-> Snapshot sanitizado da **3.4.0 RC4**, com Browser Bridge **2.4.0**. O repositório está privado enquanto titularidade, licença e autorização de distribuição pública são revisadas.
+[Português](README.pt-BR.md) · [Quick start](#quick-start) · [Architecture](docs/architecture.md) · [Security](SECURITY.md) · [Evidence gallery](docs/assets/screenshots/README.md)
 
-## O que o projeto resolve
+> [!IMPORTANT]
+> This is an independent and unofficial public beta. It is not affiliated with
+> or endorsed by the GLPI Project. Use a lab or synthetic dataset first; this
+> repository does not claim production readiness.
 
-O GLPI Assistant reduz o trabalho repetitivo na formalização de suporte sem retirar o controle do operador. O fluxo transforma conteúdo estruturado em uma revisão local, valida os campos contra o GLPI e só executa as escritas depois da aprovação humana.
+## Why this project exists
 
-- **Fechamento estruturado:** converte a formalização em T01–T05, com associação explícita de evidências E01, E02…
-- **Criação proativa:** cria um ou vários chamados a partir do prompt, com entidade, categoria, requerente, prioridade, atividades e prints revisáveis.
-- **Dry Run vinculante:** gera um plano ligado ao conteúdo; qualquer edição relevante invalida a aprovação anterior.
-- **Operação em lote:** mantém sucessos e falhas isolados, com recibos e links para o GLPI.
-- **Browser Bridge:** transporta prompt, timestamp e evidências do navegador para o serviço local.
-- **Mensageria opcional:** integra WAHA com verificação do destinatário, idempotência e estados de entrega.
+Support work often ends with the same difficult trade-off: document every
+technical step accurately without turning repetitive ticket updates into a
+second job. GLPI Workflow Assistant explores a safer automation boundary. It
+structures operator input, resolves catalog data, binds a Dry Run to the exact
+payload and waits for human approval before privileged writes.
 
-## Arquitetura
+The project is deliberately local-first. The FastAPI service listens on
+loopback, keeps operational state in local SQLite and treats browser or
+AI-generated content as input—not authorization.
+
+## Controlled workflow
+
+1. **Capture intent** — accept a structured closure or one/many proactive ticket drafts.
+2. **Resolve fields** — validate entity, category, requester, technician, priority and evidence.
+3. **Dry Run** — generate a plan and digest for the current payload.
+4. **Human approval** — edits invalidate the previous plan.
+5. **Execute and verify** — write through the GLPI REST API and return an inspectable receipt.
 
 ```mermaid
 flowchart LR
-    A[Chat e Browser Bridge] --> B[API local FastAPI]
-    B --> C[Parser e validação]
-    C --> D[Dry Run]
-    D --> E[Aprovação humana]
-    E --> F[GLPI REST API]
-    B --> G[(SQLite local)]
-    B --> H[WAHA opcional]
+    A[Structured prompt] --> B[Reviewable draft]
+    B --> C[Dry Run + digest]
+    C --> D{Human approval}
+    D -->|approved| E[GLPI REST write]
+    D -->|edited| B
+    E --> F[Verified receipt]
 ```
 
-O Bridge entrega conteúdo; ele não autoriza alterações no GLPI. O servidor resolve catálogos, registra a intenção antes das mutações remotas e exige uma aprovação associada ao plano atual. Consulte o [modelo de ameaças](docs/threat-model.md) e as [decisões arquiteturais](docs/adr/).
+## What is included
 
-## Fluxos principais
+- Existing-ticket closure with T01–T05 tasks and explicit E01/E02 evidence mapping.
+- Proactive single or batch ticket creation with idempotency and partial-result isolation.
+- Approval invalidation when relevant payload fields change.
+- Browser Bridge 2.4.0 for Chromium-based browsers and Firefox development use.
+- Optional restricted WAHA path with recipient verification and no blind resend after uncertainty.
+- Deterministic Debian and extension artifacts, SHA-256 checksums and a scoped CycloneDX SBOM.
 
-### Formalizar um chamado existente
+## Safety model
 
-1. Carregue o chamado e cole a formalização estruturada.
-2. Revise T01–T05, categoria, contexto e evidências.
-3. Execute o Dry Run e aprove o plano.
-4. Confira o recibo e a releitura das tarefas no GLPI.
+- GLPI writes require a current plan and explicit approval.
+- Uncertain POST/upload outcomes are reconciled instead of retried blindly.
+- Evidence is associated by stable identifiers, not screenshot order alone.
+- Loopback origin and local-token checks protect the local service boundary.
+- Synthetic fixtures generate demos and screenshots; publication scans cover source and archives.
+- Optional messaging has separate enablement, recipient-binding and delivery-state controls.
 
-O contrato T01–T05 representa **Problema Informado → Problema Identificado → Diagnóstico → Solução Aplicada → Validação do Cliente**. A validação nunca é inventada.
+See the [security policy](SECURITY.md), [threat model](docs/threat-model.md),
+[privacy boundary](docs/privacy-and-data.md) and
+[known limitations](docs/known-limitations.md).
 
-### Criar chamados proativos
+## Interface evidence
 
-1. O prompt pode descrever um ou vários atendimentos.
-2. A revisão resolve entidade, categoria, localização, requerente, técnico, prioridade e atividades.
-3. O operador corrige pendências e aprova cada plano.
-4. A criação ocorre sequencialmente, com idempotência, reconciliação de resultado incerto e comprovante por chamado.
+The gallery uses the real application HTML/CSS/JavaScript with intercepted,
+synthetic API fixtures. It performs no real GLPI write or message delivery.
 
-Tipo padrão: **Requisição**. Prioridade padrão: **Baixa/Média**. Alta ou superior exige escolha explícita. [Contrato completo](docs/proactive-ticket-creation.md).
+![Central queue using synthetic data](docs/assets/screenshots/01-central.png)
 
-## Interface
+[Open the evidence gallery and methodology →](docs/assets/screenshots/README.md)
 
-Capturas da interface real com dados sintéticos e APIs simuladas. Nenhuma escrita no GLPI ou mensagem real foi executada para gerar estas imagens.
+## Architecture
 
-![Central com chamado sintético](docs/assets/screenshots/01-central.png)
+![Architecture overview showing local and remote trust boundaries](docs/assets/brand/architecture-overview.svg)
 
-<details>
-<summary>Ver mais capturas</summary>
+The Browser Bridge transports context; it does not authorize changes. The
+local service owns parsing, validation, plan binding, state and receipts. GLPI
+and optional WAHA remain remote trust boundaries.
 
-![Card de chamado](docs/assets/screenshots/02-ticket-card.png)
+## Quick start
 
-![Controle de T01 pausada](docs/assets/screenshots/03-t01-paused.png)
-
-</details>
-
-[Metodologia e limites da galeria](docs/assets/screenshots/README.md)
-
-## Executar localmente
+Requirements: Linux, Python 3.12+, Node.js 24+ for the regression suite, and
+Docker only for the packaged runtime path.
 
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
-pip install -r package/usr/lib/glpi-assistant/app/requirements.txt -r requirements-dev.txt
+python -m pip install -r package/usr/lib/glpi-assistant/app/requirements.txt -r requirements-dev.txt
 GLPI_ASSISTANT_DATA="$PWD/.local-data" uvicorn main:app \
   --app-dir package/usr/lib/glpi-assistant/app \
   --host 127.0.0.1 --port 8765
 ```
 
-Abra `http://127.0.0.1:8765`. Mantenha tokens e configurações reais fora do Git. Antes de conectar ambientes reais, leia [instalação e efeitos operacionais](docs/installation.md).
+Open `http://127.0.0.1:8765`. Start without real credentials, then follow the
+[installation guide](docs/installation.md) and [configuration reference](docs/configuration.md).
 
-## Testes e build
+## Verify the snapshot
 
 ```bash
-GLPI_ASSISTANT_DATA="$PWD/.test-data" python -m pytest tests qa/test_waha_installer.py -q
+GLPI_ASSISTANT_DATA="$(mktemp -d)" python -m pytest tests qa/test_waha_installer.py -q
 python scripts/check_javascript.py
 python scripts/build_portfolio.py
+python scripts/verify_release.py dist
+python scripts/audit_publication.py . dist
 ```
 
-Validação registrada para a RC4:
+Release `3.4.0-beta.1` and Browser Bridge `2.4.0` are derived from
+[`docs/project/release-manifest.json`](docs/project/release-manifest.json).
+Automated regression coverage uses simulated remote integrations; clean-host
+installation and live interoperability are separate acceptance boundaries.
 
-| Área | Resultado | Limite |
-|---|---:|---|
-| Python | 260 testes aprovados | integrações remotas simuladas |
-| JavaScript/DOM | 22 scripts aprovados | 16 arquivos também passam por verificação sintática |
-| Layout | 480, 768 e 1280 px | amostras sintéticas |
-| Debian | metadados, sintaxe e extração verificados | instalação real pendente |
+## Repository map
 
-Esses resultados não comprovam homologação em produção. Veja o [registro de validação](docs/validation.md).
-
-## Organização do repositório
-
-| Caminho | Responsabilidade |
+| Path | Responsibility |
 |---|---|
-| `package/` | aplicação FastAPI, interface e empacotamento Debian |
-| `extension/` | Browser Bridge para Chromium e Firefox |
-| `tests/`, `qa/` | regressões Python, JavaScript, DOM e instalador |
-| `scripts/`, `demo/` | build reproduzível e cenários sintéticos |
-| `security-3.4/` | candidato experimental de restrições WAHA |
-| `docs/` | arquitetura, operação, segurança e decisões técnicas |
+| `package/` | FastAPI application, local UI and Debian filesystem layout |
+| `extension/` | Browser Bridge for Chromium and Firefox |
+| `tests/`, `qa/` | Python, JavaScript, DOM, installer and security regressions |
+| `scripts/` | Reproducible build, audit, capture and release verification |
+| `demo/` | Synthetic input and screenshot scenarios |
+| `patches/` | Separately documented WAHA patch boundary |
+| `docs/` | Architecture, setup, security, evidence and project decisions |
 
-## Segurança e limites
+## Skills demonstrated
 
-- Serviço ligado a `127.0.0.1`, com validação de origem e token local.
-- Tokens, bancos, sessões WAHA, relatórios reais e históricos são excluídos do repositório.
-- Escritas no GLPI exigem plano atual e aprovação humana; automações de contato têm autorização própria e auditável.
-- Resultados incertos não provocam repetição automática de POST ou upload.
-- A aplicação permanece local e mono-operador; autenticação web multiusuário e RBAC estão no roadmap.
+Python/FastAPI · REST API integration · Linux/Debian packaging · Docker ·
+applied security · testing · CI/CD · human-in-the-loop automation · technical
+documentation · reproducible release engineering.
 
-[Política de segurança](SECURITY.md) · [Privacidade](docs/privacy-and-data.md) · [Limitações conhecidas](docs/known-limitations.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
+## Project status
 
-## Licença e distribuição
+This beta is suitable for code review, lab evaluation and portfolio evidence.
+It is not a hosted multi-user service, a security-certified product or a
+promise of compatibility with systems other than the documented GLPI flow.
+Roadmap ideas are not current capabilities.
 
-Nenhuma licença open source foi atribuída a este snapshot. A titularidade e a autorização de publicação pública ainda precisam de revisão. Licenças de terceiros, incluindo WAHA, foram preservadas em [LEGAL_AND_OWNERSHIP.md](LEGAL_AND_OWNERSHIP.md) e [NOTICE.md](NOTICE.md).
+## Contributing and license
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [SUPPORT.md](SUPPORT.md) and the
+[Code of Conduct](CODE_OF_CONDUCT.md). Original project code is available
+under `AGPL-3.0-or-later`; third-party boundaries are described in
+[NOTICE.md](NOTICE.md).
