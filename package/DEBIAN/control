@@ -3,7 +3,7 @@ Version: 3.4.0~rc4-1
 Section: admin
 Priority: optional
 Architecture: all
-Maintainer: GLPI Assistant Project
+Maintainer: GLPI Workflow Assistant Project
 Depends: python3, python3-pip, docker.io, ca-certificates, xdg-utils, util-linux
 Description: Self-hosted localhost assistant for GLPI REST API task documentation
  GLPI Assistant runs as a local Docker container bound to 127.0.0.1:8765.
