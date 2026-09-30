@@ -6,7 +6,7 @@ const browser={tabs:{query:async()=>tabs,update:async(...args)=>calls.push(['upd
 const ctx={URL,browser};vm.createContext(ctx);vm.runInContext(fn,ctx);
 (async()=>{
  const sender={tab:{url:'http://127.0.0.1:8765/#central',windowId:7,cookieStoreId:'work'}};
- const target='https://web.whatsapp.com/send?phone=5531999998888&text=Chamado%20%23123';
+ const target='https://web.whatsapp.com/send?phone=5531000000000&text=Chamado%20%23123';
  assert.equal((await ctx.openExistingWhatsapp(target,sender)).reused,true);
  assert.equal(calls[0][0],'update');assert.equal(calls[0][1],19);assert.equal(calls.length,1);
  await assert.rejects(ctx.openExistingWhatsapp(target,{tab:{url:'https://evil.test/',windowId:7}}));

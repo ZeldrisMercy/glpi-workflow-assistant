@@ -167,8 +167,8 @@ def test_conflicting_ticket_markers():
 
 
 def test_whatsapp_and_timezone():
-    assert whatsapp('(11) 99999-8888',1,'Backup & rede').startswith('https://wa.me/5511999998888?text=')
-    assert whatsapp('5511999998888',1,'Backup').startswith('https://wa.me/5511999998888?text=')
+    assert whatsapp('(11) 00000-0001',1,'Backup & rede').startswith('https://wa.me/5511000000001?text=')
+    assert whatsapp('5511000000001',1,'Backup').startswith('https://wa.me/5511000000001?text=')
     # Número local sem DDD apareceu em perfis reais e não pode gerar wa.me inválido.
     assert whatsapp('9900-0109',1,'x') is None
     assert whatsapp('123',1,'x') is None
@@ -176,13 +176,13 @@ def test_whatsapp_and_timezone():
 
 
 @pytest.mark.parametrize('text,expected',[
-    ('Qual é o telefone para contato com o colaborador? : 31999000101','31999000101'),
-    ('Digite o telefone para contato: (31) 99900-0102','31999000102'),
-    ('Telefone para contato com o colaborador - 31.99900 0103','31999000103'),
-    ('Digite o telefone para contato : 319 9900-0104','31999000104'),
-    ('Digite o telefone para contato : (031) 99900-0105','31999000105'),
-    ('Digite o telefone para contato : 031 9 9900-0106','31999000106'),
-    ('Digite o telefone para contato : (031) 99900-0107','31999000107'),
+    ('Qual é o telefone para contato com o colaborador? : 31000000101','31000000101'),
+    ('Digite o telefone para contato: (31) 00000-0102','31000000102'),
+    ('Telefone para contato com o colaborador - 31.00000 0103','31000000103'),
+    ('Digite o telefone para contato : 310 0000-0104','31000000104'),
+    ('Digite o telefone para contato : (031) 00000-0105','31000000105'),
+    ('Digite o telefone para contato : 031 0 0000-0106','31000000106'),
+    ('Digite o telefone para contato : (031) 00000-0107','31000000107'),
     ('Patrimônio 901430; contato sem telefone',''),
 ])
 def test_real_form_phone_variations(text, expected):
@@ -778,7 +778,7 @@ def test_numeric_ticket_filter_uses_declared_contains_and_is_exact_client_side(e
 
 def test_contact_phone_falls_back_to_ticket_form_when_user_lookup_denied(env, monkeypatch):
     c,g=env
-    g.tickets[1]['content']='Falha no Outlook. Digite o telefone para contato: (31) 99900-0102'
+    g.tickets[1]['content']='Falha no Outlook. Digite o telefone para contato: (31) 00000-0102'
     monkeypatch.setattr(g,'ticket_users',lambda tid:[{'users_id':9,'type':2},{'users_id':77,'type':1,'label':'Cliente'}])
     old=g.get
     def get(path,params=None):
@@ -787,13 +787,13 @@ def test_contact_phone_falls_back_to_ticket_form_when_user_lookup_denied(env, mo
     monkeypatch.setattr(g,'get',get)
     data=c.post('/api/workbench/sync').json()
     contact=data['items'][0]['contacts'][0]
-    assert contact['phone']=='5531999000102'
-    assert contact['whatsapp'].startswith('https://wa.me/5531999000102?')
+    assert contact['phone']=='5531000000102'
+    assert contact['whatsapp'].startswith('https://wa.me/5531000000102?')
 
 
 def test_ticket_form_phone_precedes_incomplete_profile_phone(env, monkeypatch):
     c,g=env
-    g.tickets[1]['content']='Digite o telefone para contato com o colaborador? : 3199000108'
+    g.tickets[1]['content']='Digite o telefone para contato com o colaborador? : 3100000108'
     monkeypatch.setattr(g,'ticket_users',lambda tid:[{'users_id':9,'type':2},{'users_id':77,'type':1,'label':'Cliente'}])
     old=g.get
     def get(path,params=None):
@@ -801,8 +801,8 @@ def test_ticket_form_phone_precedes_incomplete_profile_phone(env, monkeypatch):
         return old(path,params)
     monkeypatch.setattr(g,'get',get)
     contact=c.post('/api/workbench/sync').json()['items'][0]['contacts'][0]
-    assert contact['phone']=='553199000108' and contact['phone_source']=='descricao'
-    assert contact['whatsapp'].startswith('https://wa.me/553199000108?')
+    assert contact['phone']=='553100000108' and contact['phone_source']=='descricao'
+    assert contact['whatsapp'].startswith('https://wa.me/553100000108?')
 
 
 def test_requester_user_lookup_is_cached_during_sync(env, monkeypatch):
@@ -813,7 +813,7 @@ def test_requester_user_lookup_is_cached_during_sync(env, monkeypatch):
     def get(path,params=None):
         if path=='User/77':
             calls.append(path)
-            return {'id':77,'firstname':'Ana','realname':'Silva','mobile':'31999998888'}
+            return {'id':77,'firstname':'Ana','realname':'Silva','mobile':'31000000000'}
         return old(path,params)
     monkeypatch.setattr(g,'get',get)
     data=c.post('/api/workbench/sync').json()
@@ -853,18 +853,18 @@ def test_template_backup_lists_existing_documents_for_visual_review(env):
 def test_waha_monitor_end_to_end(env, monkeypatch):
     import whatsapp_auto as wa
     c,g=env
-    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511000000000@c.us'}})
     calls=[]
     monkeypatch.setattr(wa,'api',lambda method,path,payload=None,**kw: calls.append((method,path,payload)) or {'id':'wa-message'})
     c.put('/api/workbench/settings',json={'auto_initial':False,'contact_name':'Alex'})
     assert c.put('/api/whatsapp/settings',json={'enabled':True}).status_code==200
     c.post('/api/workbench/sync')
     assert not calls  # Existing assignments are only baseline.
-    g.tickets[2]={**g.tickets[1],'id':2,'name':'Acesso VPN','content':'Telefone: (31) 99999-8888'}
+    g.tickets[2]={**g.tickets[1],'id':2,'name':'Acesso VPN','content':'Telefone: (31) 00000-0000'}
     g.assigned_ids.add(2)
     assert c.post('/api/workbench/sync').status_code==200
     assert len(calls)==1
-    assert calls[0][2]['chatId']=='5531999998888@c.us'
+    assert calls[0][2]['chatId']=='5531000000000@c.us'
     assert '#2' in calls[0][2]['text'] and 'Alex' in calls[0][2]['text']
     c.post('/api/workbench/sync')
     g.assigned_ids.remove(2);c.post('/api/workbench/sync')
@@ -878,9 +878,9 @@ def test_waha_resume_one_click_and_idempotency(env, monkeypatch):
     import whatsapp_auto as wa
     import uuid
     c,g=env
-    g.tickets[1]['content']='Telefone: (31) 99999-8888'
+    g.tickets[1]['content']='Telefone: (31) 00000-0000'
     c.put('/api/workbench/settings',json={'contact_name':'Alex','continuation_message':'Olá, sou {tecnico}. Retorno sobre #{chamado}: {assunto}.'})
-    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511000000000@c.us'}})
     calls=[]
     monkeypatch.setattr(wa,'api',lambda *args,**kwargs:calls.append(args) or {'id':'resume1'})
     payload={'ticket_id':1,'request_id':str(uuid.uuid4())}
@@ -897,32 +897,32 @@ def test_waha_resume_revalidates_recipient_and_assignment(env,monkeypatch):
     import whatsapp_auto as wa
     import uuid
     c,g=env
-    g.tickets[1]['content']='Telefone: (31) 99999-8888'
+    g.tickets[1]['content']='Telefone: (31) 00000-0000'
     c.put('/api/workbench/settings',json={'contact_name':'Alex'})
-    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511000000000@c.us'}})
     monkeypatch.setattr(wa,'api',lambda *a,**kw:pytest.fail('Must not send'))
     payload={'ticket_id':1,'request_id':str(uuid.uuid4())}
     g.assigned_ids.clear()
     assert c.post('/api/whatsapp/resume',json=payload).status_code==409
     g.assigned_ids.add(1)
     g.ticket_users=lambda tid:[{'users_id':9,'type':2},{'users_id':10,'type':1},{'users_id':11,'type':1}]
-    g.tickets[1]['content']='Contato: (31) 99999-8888 ou (31) 98888-7777'
+    g.tickets[1]['content']='Contato: (31) 00000-0000 ou (31) 00000-0001'
     assert c.post('/api/whatsapp/resume',json=payload).status_code==409
     # An explicit, unique description contact is primary even with multiple requesters.
-    g.tickets[1]['content']='Contato: (31) 99999-8888'
+    g.tickets[1]['content']='Contato: (31) 00000-0000'
     sent=[]
     monkeypatch.setattr(wa,'api',lambda *args,**kwargs: (sent.append(args) or {'id':'msg-primary'}))
     assert c.post('/api/whatsapp/resume',json=payload).status_code==200
-    assert sent[0][2]['chatId']=='5531999998888@c.us'
+    assert sent[0][2]['chatId']=='5531000000000@c.us'
 
 
 def test_waha_resume_custom_text_and_uncertain_result(env,monkeypatch):
     import whatsapp_auto as wa
     import uuid
     c,g=env
-    g.tickets[1]['content']='Telefone: (31) 99999-8888'
+    g.tickets[1]['content']='Telefone: (31) 00000-0000'
     c.put('/api/workbench/settings',json={'contact_name':'Alex'})
-    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511000000000@c.us'}})
     calls=[]
     def fail(*args,**kwargs):calls.append(args);raise TimeoutError()
     monkeypatch.setattr(wa,'api',fail)
@@ -1102,7 +1102,7 @@ def test_proactive_self_only_can_plan_without_waha(env, monkeypatch):
     result=c.post('/api/plan',json={'ticket_id':1,'text':closure(),'evidence_map':{}})
     assert result.status_code==200,result.text
     assert result.json()['contact_receipt'] is None
-    assert self_only_ticket(g,{**g.tickets[1], 'content':'Contato: (31) 99999-8888'},9) is False
+    assert self_only_ticket(g,{**g.tickets[1], 'content':'Contato: (31) 00000-0000'},9) is False
     assert self_only_ticket(g,g.tickets[1],9,[{'users_id':9,'type':1},{'users_id':9,'type':2},{'users_id':10,'type':3}]) is False
     assert self_only_ticket(g,g.tickets[1],9,[{'users_id':9,'type':2}]) is False
     assert self_only_ticket(g,g.tickets[1],9,[{'users_id':9,'type':1}]) is False
@@ -1112,7 +1112,7 @@ def test_proactive_self_only_auto_initial_without_send(env,monkeypatch):
     import whatsapp_auto as wa
     c,g=env
     monkeypatch.setattr(g,'ticket_users',lambda tid: [{'users_id':9,'type':1},{'users_id':9,'type':2}] if tid==2 else [{'users_id':9,'type':2}])
-    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511000000000@c.us'}})
     calls=[]
     monkeypatch.setattr(wa,'api',lambda *args,**kwargs:calls.append(args) or {'id':'unexpected'})
     c.put('/api/workbench/settings',json={'enabled':True,'auto_initial':True})
@@ -1145,10 +1145,10 @@ def test_bridge_handoff_carries_review_only_completion_intent(env):
 def test_waha_activation_baselines_before_return_then_sends_new_assignment(env,monkeypatch):
     import whatsapp_auto as wa
     c,g=env
-    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511000000000@c.us'}})
     calls=[]
     monkeypatch.setattr(wa,'api',lambda method,path,payload=None,**kw:calls.append((method,path,payload)) or {'id':'wa-confirmed'})
-    g.tickets[1]['content']='Contato: (31) 99999-8888'
+    g.tickets[1]['content']='Contato: (31) 00000-0000'
     c.put('/api/workbench/settings',json={'enabled':True,'auto_initial':False,'contact_name':'Alex'})
     enabled=c.put('/api/whatsapp/settings',json={'enabled':True})
     assert enabled.status_code==200,enabled.text
@@ -1158,7 +1158,7 @@ def test_waha_activation_baselines_before_return_then_sends_new_assignment(env,m
     g.assigned_ids.add(2)
     assert c.post('/api/workbench/sync').status_code==200
     posts=[call for call in calls if call[0]=='POST']
-    assert len(posts)==1 and posts[0][2]['chatId']=='5531999998888@c.us'
+    assert len(posts)==1 and posts[0][2]['chatId']=='5531000000000@c.us'
     assert c.post('/api/workbench/sync').status_code==200
     assert len([call for call in calls if call[0]=='POST'])==1
 
@@ -1166,7 +1166,7 @@ def test_waha_activation_baselines_before_return_then_sends_new_assignment(env,m
 def test_waha_retries_preflight_only_after_contact_is_corrected(env,monkeypatch):
     import whatsapp_auto as wa
     c,g=env
-    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511000000000@c.us'}})
     calls=[]
     monkeypatch.setattr(wa,'api',lambda method,path,payload=None,**kw:calls.append(payload) or {'id':'wa-confirmed'})
     c.put('/api/workbench/settings',json={'enabled':True,'auto_initial':False,'contact_name':'Alex'})
@@ -1181,7 +1181,7 @@ def test_waha_retries_preflight_only_after_contact_is_corrected(env,monkeypatch)
     assert events['2']['status']=='não enviado'
     events['2']['at']-=121
     set_meta('waha_events_'+scope,events)
-    g.tickets[2]['content']='Contato: (31) 99999-8888'
+    g.tickets[2]['content']='Contato: (31) 00000-0000'
     assert c.post('/api/workbench/sync').status_code==200
     assert len(calls)==1, get_meta('waha_events_'+scope)['2'].get('detail')
     assert get_meta('waha_events_'+scope)['2']['status']=='aceito pelo WAHA'
@@ -1191,7 +1191,7 @@ def test_waha_retries_preflight_only_after_contact_is_corrected(env,monkeypatch)
 def test_waha_enable_fails_closed_when_baseline_unavailable(env,monkeypatch):
     import whatsapp_auto as wa
     c,g=env
-    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511000000000@c.us'}})
     monkeypatch.setattr(g,'get',lambda path,params=None: (_ for _ in ()).throw(RuntimeError('GLPI fora')) if path=='search/Ticket' else Fake.get(g,path,params))
     assert c.put('/api/whatsapp/settings',json={'enabled':True}).status_code==503
     assert c.get('/api/whatsapp').json()['enabled'] is False
@@ -1215,7 +1215,7 @@ def test_completion_intent_survives_tasks_only_and_offline(env, monkeypatch, act
 def test_waha_failed_refresh_never_undoes_concurrent_pause(env, monkeypatch):
     import whatsapp_auto as wa
     c, g = env
-    monkeypatch.setattr(wa, 'ready', lambda: {'me': {'id': '5511999999999@c.us'}})
+    monkeypatch.setattr(wa, 'ready', lambda: {'me': {'id': '5511000000000@c.us'}})
     assert c.put('/api/whatsapp/settings', json={'enabled': True}).status_code == 200
     def unavailable(path, params=None):
         if path == 'search/Ticket':
@@ -1257,9 +1257,9 @@ def test_initial_reply_precedes_uncertain_whatsapp_send(env, monkeypatch):
     import whatsapp_auto as wa
     c, g = env
     c.put('/api/workbench/settings', json={'enabled':True, 'auto_initial':True, 'contact_name':'Alex'})
-    monkeypatch.setattr(wa, 'ready', lambda: {'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa, 'ready', lambda: {'me':{'id':'5511000000000@c.us'}})
     c.put('/api/whatsapp/settings', json={'enabled':True})
-    g.tickets[2] = {**g.tickets[1], 'id':2, 'content':'Contato: (31) 99999-8888'}
+    g.tickets[2] = {**g.tickets[1], 'id':2, 'content':'Contato: (31) 00000-0000'}
     g.assigned_ids.add(2)
     def fail_send(*args):
         assert len(g.followups) == 1, 'Public reply must already exist when WhatsApp starts sending'
@@ -1299,12 +1299,12 @@ def test_plan_unblocked_without_whatsapp_delivery(env, monkeypatch, event):
 def test_proactive_new_assignment_suppresses_initial_reply_and_waha(env,monkeypatch):
     import whatsapp_auto as wa
     c,g=env
-    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511999999999@c.us'}})
+    monkeypatch.setattr(wa,'ready',lambda:{'me':{'id':'5511000000000@c.us'}})
     calls=[]
     monkeypatch.setattr(wa,'api',lambda method,path,payload=None,**kw:calls.append((method,path,payload)) or {'id':'wa-confirmed'})
     c.put('/api/workbench/settings',json={'enabled':True,'auto_initial':True,'contact_name':'Alex'})
     assert c.put('/api/whatsapp/settings',json={'enabled':True}).status_code==200
-    g.tickets[2]={**g.tickets[1],'id':2,'content':'Contato: (31) 99999-8888 [GLPI_PROACTIVE:'+'a'*32+']'}
+    g.tickets[2]={**g.tickets[1],'id':2,'content':'Contato: (31) 00000-0000 [GLPI_PROACTIVE:'+'a'*32+']'}
     g.assigned_ids.add(2)
     assert c.post('/api/workbench/sync').status_code==200
     assert not g.followups

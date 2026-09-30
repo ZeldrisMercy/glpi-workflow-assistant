@@ -11,7 +11,7 @@ def contract():
     return proactive_contract
 
 def draft(ref='P01'):
-    return {'schema_version':1,'operation':'create_proactive','draft_ref':ref,'title':'Inventário','description':'Documentar equipamento','entity':'MGLIT','category':'Documentação','priority':3,'tasks':[{'id':'T01','title':'Registro','content':'Dados registrados','evidence_ids':['E01']}], 'evidence':[{'id':'E01','source_index':1,'role':'evidence'}]}
+    return {'schema_version':1,'operation':'create_proactive','draft_ref':ref,'title':'Inventário','description':'Documentar equipamento','entity':'Aurora Labs (example)','category':'Documentação','priority':3,'tasks':[{'id':'T01','title':'Registro','content':'Dados registrados','evidence_ids':['E01']}], 'evidence':[{'id':'E01','source_index':1,'role':'evidence'}]}
 
 def test_multiple_proactives_keep_evidence_scoped():
     c=contract(); text='[GLPI_PROACTIVE]\n'+json.dumps([draft(),draft('P02')])+'\n[/GLPI_PROACTIVE]'
