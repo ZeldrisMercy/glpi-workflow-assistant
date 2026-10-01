@@ -6,7 +6,7 @@
   <a href="docs/project/release-manifest.json"><img alt="Version 3.4.0-beta.1" src="https://img.shields.io/badge/version-3.4.0--beta.1-6366f1"></a>
   <a href="LICENSE"><img alt="AGPL-3.0-or-later" src="https://img.shields.io/badge/license-AGPL--3.0--or--later-a855f7"></a>
   <a href=".github/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/badge/CI-required-22c55e"></a>
-  <a href="docs/installation.md"><img alt="Linux" src="https://img.shields.io/badge/platform-Linux-f8fafc?logo=linux&logoColor=111827"></a>
+  <a href="docs/getting-started/quick-start.md"><img alt="Linux" src="https://img.shields.io/badge/platform-Linux-f8fafc?logo=linux&logoColor=111827"></a>
   <img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-38bdf8?logo=python&logoColor=white">
   <img alt="Public beta" src="https://img.shields.io/badge/status-public_beta-f59e0b">
 </p>
@@ -72,9 +72,9 @@ flowchart LR
 - Synthetic fixtures generate demos and screenshots; publication scans cover source and archives.
 - Optional messaging has separate enablement, recipient-binding and delivery-state controls.
 
-See the [security policy](SECURITY.md), [threat model](docs/threat-model.md),
-[privacy boundary](docs/privacy-and-data.md) and
-[known limitations](docs/known-limitations.md).
+See the [security policy](SECURITY.md), [threat model](docs/security/threat-model.md),
+[privacy boundary](docs/security/privacy.md) and
+[known limitations](docs/project/known-limitations.md).
 
 ## Interface evidence
 
@@ -108,7 +108,8 @@ GLPI_ASSISTANT_DATA="$PWD/.local-data" uvicorn main:app \
 ```
 
 Open `http://127.0.0.1:8765`. Start without real credentials, then follow the
-[installation guide](docs/installation.md) and [configuration reference](docs/configuration.md).
+[installation guide](docs/getting-started/quick-start.md) and
+[configuration reference](docs/getting-started/configuration.md).
 
 ## Verify the snapshot
 

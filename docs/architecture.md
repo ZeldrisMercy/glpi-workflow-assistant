@@ -31,4 +31,4 @@ Assignment monitoring is a separate automation. Once enabled, it can create init
 | Database | `app.db` | Local catalogs, handoffs and automation metadata |
 | WAHA session | Separate persistent session directory | Never included in source or screenshots |
 
-Proactive ticket creation is a separate privileged write path with its own contract, plan binding, durable operation record and reconciliation rules. See [proactive creation](proactive-ticket-creation.md).
+Proactive ticket creation is a separate privileged write path with its own contract, plan binding, durable operation record and reconciliation rules. See [proactive creation](architecture/proactive-ticket-creation.md).

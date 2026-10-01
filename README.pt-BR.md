@@ -6,7 +6,7 @@
   <a href="docs/project/release-manifest.json"><img alt="Versão 3.4.0-beta.1" src="https://img.shields.io/badge/versão-3.4.0--beta.1-6366f1"></a>
   <a href="LICENSE"><img alt="AGPL-3.0-or-later" src="https://img.shields.io/badge/licença-AGPL--3.0--or--later-a855f7"></a>
   <a href=".github/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/badge/CI-obrigatória-22c55e"></a>
-  <a href="docs/installation.md"><img alt="Linux" src="https://img.shields.io/badge/plataforma-Linux-f8fafc?logo=linux&logoColor=111827"></a>
+  <a href="docs/getting-started/quick-start.md"><img alt="Linux" src="https://img.shields.io/badge/plataforma-Linux-f8fafc?logo=linux&logoColor=111827"></a>
   <img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-38bdf8?logo=python&logoColor=white">
   <img alt="Beta pública" src="https://img.shields.io/badge/status-beta_pública-f59e0b">
 </p>
@@ -74,9 +74,9 @@ flowchart LR
 - Mensageria opcional possui controles próprios de ativação, vínculo e entrega.
 
 Consulte a [política de segurança](SECURITY.md), o
-[modelo de ameaças](docs/threat-model.md), a
-[fronteira de privacidade](docs/privacy-and-data.md) e as
-[limitações conhecidas](docs/known-limitations.md).
+[modelo de ameaças](docs/security/threat-model.md), a
+[fronteira de privacidade](docs/security/privacy.md) e as
+[limitações conhecidas](docs/project/known-limitations.md).
 
 ## Evidências da interface
 
@@ -111,8 +111,8 @@ GLPI_ASSISTANT_DATA="$PWD/.local-data" uvicorn main:app \
 ```
 
 Abra `http://127.0.0.1:8765`. Comece sem credenciais reais e depois siga o
-[guia de instalação](docs/installation.md) e a
-[referência de configuração](docs/configuration.md).
+[guia de instalação](docs/getting-started/quick-start.md) e a
+[referência de configuração](docs/getting-started/configuration.md).
 
 ## Verificar o snapshot
 

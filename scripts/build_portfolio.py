@@ -45,8 +45,8 @@ def build_debian(output: Path) -> list[dict[str, object]]:
             ROOT / "LICENSE",
             ROOT / "NOTICE.md",
             ROOT / "SUPPORT.md",
-            ROOT / "docs/installation.md",
-            ROOT / "docs/known-limitations.md",
+            ROOT / "docs/getting-started/quick-start.md",
+            ROOT / "docs/project/known-limitations.md",
         ):
             shutil.copy2(source, docs / source.name)
         for script in (stage / "DEBIAN").iterdir():

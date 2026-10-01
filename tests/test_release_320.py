@@ -75,7 +75,7 @@ def test_bridge_22_contains_outbox_ack_generic_reinjection_and_multi_ticket_guar
 
 
 def test_prompt_has_new_full_five_tasks_and_explicit_batch_contract():
-    prompt = (ROOT / 'docs/PROMPT_FORMALIZACAO_3.2.md').read_text(encoding='utf-8')
+    prompt = (ROOT / 'docs/getting-started/structured-input.md').read_text(encoding='utf-8')
     assert 'gere sempre as cinco etapas **T01, T02, T03, T04 e T05**' in prompt
     assert '[GLPI_BATCH]' in prompt
     assert 'Cada chamado novo/completo continua obedecendo **T01–T05 individualmente**' in prompt

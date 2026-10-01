@@ -4,6 +4,7 @@ from pathlib import Path
 import hashlib
 import json
 import struct
+import re
 import xml.etree.ElementTree as ET
 
 from scripts.audit_publication import scan_paths
@@ -165,3 +166,76 @@ def test_readme_claims_match_release_manifest() -> None:
         assert manifest["bridge_version"] in text
         assert "RC3" not in text and "RC4" not in text
         assert "tests passed" not in text.casefold() and "testes aprovados" not in text.casefold()
+
+
+def test_required_public_docs_exist() -> None:
+    required = {
+        "docs/getting-started/quick-start.md",
+        "docs/getting-started/debian-installation.md",
+        "docs/getting-started/browser-bridge.md",
+        "docs/getting-started/configuration.md",
+        "docs/getting-started/compatibility.md",
+        "docs/getting-started/demo-data.md",
+        "docs/getting-started/troubleshooting.md",
+        "docs/getting-started/operations-and-recovery.md",
+        "docs/getting-started/structured-input.md",
+        "docs/security/security-model.md",
+        "docs/security/threat-model.md",
+        "docs/security/privacy.md",
+        "docs/architecture/api-contract.md",
+        "docs/architecture/evidence-model.md",
+        "docs/architecture/proactive-ticket-creation.md",
+        "docs/architecture/waha-integration.md",
+        "docs/project/case-study.md",
+        "docs/project/roadmap.md",
+        "docs/project/known-limitations.md",
+        "docs/project/release-process.md",
+        "docs/project/source-map.md",
+        "docs/project/testing.md",
+        "docs/project/validation.md",
+        "docs/project/screenshot-methodology.md",
+    }
+
+    assert not {path for path in required if not (ROOT / path).is_file()}
+
+
+def test_docs_have_no_rc_or_obsolete_version_claims() -> None:
+    obsolete_paths = {
+        "docs/CHANGELOG_3.4.0-rc4.md",
+        "docs/INSTALACAO_E_ROLLBACK.md",
+        "docs/PROMPT_FORMALIZACAO_3.2.md",
+        "docs/PROMPT_FORMALIZACAO_3.4.0-rc4.md",
+        "docs/SEGURANCA_ESTABILIDADE_3.4.0-rc4.md",
+        "docs/VALIDACAO_3.4.0-rc4.json",
+        "docs/WHATSAPP_WAHA.md",
+        "docs/publication-checklist.md",
+        "docs/release-draft.md",
+    }
+    public_docs = [ROOT / "README.md", ROOT / "README.pt-BR.md", *sorted((ROOT / "docs").rglob("*.md"))]
+
+    assert not {path for path in obsolete_paths if (ROOT / path).exists()}
+    for path in public_docs:
+        text = path.read_text(encoding="utf-8")
+        assert not re.search(r"\b(?:RC3|RC4|3\.3\.0|3\.4\.0[-~]rc4)\b", text, re.IGNORECASE), path
+
+
+def test_case_study_links_real_evidence() -> None:
+    text = (ROOT / "docs/project/case-study.md").read_text(encoding="utf-8")
+
+    assert "../assets/screenshots/README.md" in text
+    assert "../assets/screenshots/capture-report.json" in text
+    assert "../assets/screenshots/ocr-report.json" in text
+    assert "validation-matrix.md" in text
+    assert "internal-audit/" not in text
+
+
+def test_docs_do_not_reference_missing_paths() -> None:
+    markdown_files = [ROOT / "README.md", ROOT / "README.pt-BR.md", *sorted((ROOT / "docs").rglob("*.md"))]
+    link_pattern = re.compile(r"(?<!!)\[[^]]*]\(([^)]+)\)")
+
+    for source in markdown_files:
+        for raw_target in link_pattern.findall(source.read_text(encoding="utf-8")):
+            target = raw_target.strip().split("#", 1)[0]
+            if not target or target.startswith(("http://", "https://", "mailto:")):
+                continue
+            assert (source.parent / target).resolve().exists(), f"{source.relative_to(ROOT)} -> {target}"
