@@ -32,4 +32,4 @@ def test_queue_has_visible_counter_and_readability_layout():
     assert '.my-ticket-card' in CSS
     assert '.ticket-query-grid' in CSS
     assert '.closure-state-tabs' in CSS
-    assert '3.4.0-rc4 · Limitless' in INDEX
+    assert '3.4.0-beta.1 · Public Beta' in INDEX

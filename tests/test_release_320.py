@@ -46,7 +46,7 @@ def test_release_ui_has_expandable_central_backup_review_and_receipt():
     js = (APP / 'static/workbench.js').read_text(encoding='utf-8')
     appjs = (APP / 'static/app.js').read_text(encoding='utf-8')
     css = (APP / 'static/workspace.css').read_text(encoding='utf-8')
-    assert '3.4.0-rc4 · Limitless' in html
+    assert '3.4.0-beta.1 · Public Beta' in html
     assert 'id="closureReviewPanel"' in html
     assert 'id="wbBackupProgress"' in html
     assert 'id="applySuccessDialog"' in html

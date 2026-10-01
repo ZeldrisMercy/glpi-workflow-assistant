@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#070a12">
-  <title>GLPI Assistant</title>
-  <link rel="icon" type="image/svg+xml" sizes="any" href="/static/favicon.svg?rev=limitless-infinity">
-  <link rel="stylesheet" href="/static/style.css?v=3.4.0-rc4">
-  <link rel="stylesheet" href="/static/workspace.css?v=3.4.0-rc4">
+  <title>GLPI Workflow Assistant</title>
+  <link rel="icon" type="image/svg+xml" sizes="any" href="/static/favicon.svg?rev=public-beta">
+  <link rel="stylesheet" href="/static/style.css?v=3.4.0-beta.1">
+  <link rel="stylesheet" href="/static/workspace.css?v=3.4.0-beta.1">
 </head>
 <body>
   <a class="skip-link" href="#workspace">Ir para o conteúdo</a>
@@ -15,12 +15,12 @@
     <div class="brand">
       <div class="brand-bar" aria-hidden="true">∞</div>
       <div>
-        <strong>GLPI Assistant</strong>
-        <div class="brand-sub">Seu atendimento, organizado</div>
+        <strong>GLPI Workflow Assistant</strong>
+        <div class="brand-sub">Ticketing local, revisado</div>
       </div>
     </div>
     <div class="topbar-actions">
-      <span class="edition-chip">3.4.0-rc4 · Limitless</span>
+      <span class="edition-chip">3.4.0-beta.1 · Public Beta</span>
       <div id="health" class="status-pill">Carregando…</div>
     </div>
   </header>
@@ -29,7 +29,7 @@
     <section id="setupCard" class="card setup-card hidden">
       <div class="section-kicker">CONEXÃO</div>
       <h2>Configuração inicial</h2>
-      <p class="muted">O token permanece somente nesta máquina, no armazenamento persistente local do GLPI Assistant. A aplicação escuta apenas em Localhost.</p>
+      <p class="muted">O token permanece somente nesta máquina, no armazenamento persistente local do GLPI Workflow Assistant. A aplicação escuta apenas em Localhost.</p>
       <p class="muted small">Perfis restritos são suportados: autenticar não exige acesso a todas as entidades ou à listagem global de usuários.</p>
       <label>URL do GLPI
         <input id="cfgUrl" placeholder="https://empresa.example/apirest.php">
@@ -66,7 +66,7 @@
         </div>
       </div>
 
-      <nav class="workspace-nav" aria-label="Navegação do GLPI Assistant">
+      <nav class="workspace-nav" aria-label="Navegação do GLPI Workflow Assistant">
         <a href="#central"><span class="nav-index">⌂</span><span><strong>Minha central</strong><small>Novos e acompanhamento</small></span></a>
         <a href="#minha-fila"><span class="nav-index"></span><span><strong>Minha fila</strong><small>Atribuídos a mim</small></span></a>
         <a href="#encerrados"><span class="nav-index"></span><span><strong>Histórico de atendimentos</strong><small>Solucionados e fechados</small></span></a>
@@ -288,7 +288,7 @@
               <div class="bridge-status-row"><span>Último contato</span><strong id="bridgeLastSeen">—</strong></div>
             </div>
             <div id="bridgePairPanel" class="bridge-pair-panel">
-              <div class="muted small">No Firefox, abra <strong>GLPI Assistant Bridge 2.4.0</strong>. ChatGPT/Gemini funcionam diretamente; outras IAs HTTPS podem ser ativadas explicitamente no domínio atual.</div>
+              <div class="muted small">No Firefox, abra <strong>Workflow Assistant Bridge 2.4.0</strong>. ChatGPT/Gemini funcionam diretamente; outras IAs HTTPS podem ser ativadas explicitamente no domínio atual.</div>
               <div class="bridge-code-row">
                 <div id="bridgePairCode" class="bridge-code">——— ———</div>
                 <button id="generateBridgeCode" class="white-action">Gerar código</button>
@@ -520,17 +520,17 @@
     <div class="actions success-actions"><button id="applySuccessOpenGlpi" type="button" class="ghost">Abrir no GLPI ↗</button><button id="applySuccessStay" type="button" class="secondary">Manter chamado aberto</button><button id="applySuccessNext" type="button" class="white-action">Próximo chamado</button></div>
   </dialog>
   <dialog id="wbDialog"><form method="dialog"><button class="secondary wb-dialog-close" aria-label="Fechar">×</button></form><h2>Revisar conclusão</h2><p>Confirme o resultado real de cada atendimento. Esta ação registra uma solução; não cria as tarefas da formalização.</p><label>Resultado no GLPI<select id="wbTarget"><option value="solve">Solucionado — aguardar aceite</option><option value="close">Fechado — encerrar agora, se meu perfil permitir</option></select></label><div id="wbSolutions"></div><label class="check"><input id="wbOk" type="checkbox">Revisei os atendimentos e confirmo que podem ser concluídos.</label><div class="actions"><button id="wbReviewSolutions">Validar revisão</button><button id="wbApplySolutions" disabled>Aplicar conclusão</button></div><pre id="wbSolutionResult" role="status"></pre></dialog>
-  <script src="/static/app.js?v=3.4.0-rc4"></script>
-  <script src="/static/contact-template.js?v=3.4.0-rc4"></script>
-  <script src="/static/contact-editor.js?v=3.4.0-rc4"></script>
-  <script src="/static/workbench.js?v=3.4.0-rc4"></script>
-  <script src="/static/my-tickets.js?v=3.4.0-rc4"></script>
-  <link rel="stylesheet" href="/static/closure-queue.css?v=3.4.0-rc4">
-  <script src="/static/batch-receipt.js?v=3.4.0-rc4"></script>
-  <script src="/static/closure-queue.js?v=3.4.0-rc4"></script>
-  <link rel="stylesheet" href="/static/whatsapp.css?v=3.4.0-rc4">
-  <script src="/static/whatsapp.js?v=3.4.0-rc4"></script>
-<link rel="stylesheet" href="/static/proactive.css?v=3.4.0-rc4">
-<script src="/static/proactive.js?v=3.4.0-rc4"></script>
+  <script src="/static/app.js?v=3.4.0-beta.1"></script>
+  <script src="/static/contact-template.js?v=3.4.0-beta.1"></script>
+  <script src="/static/contact-editor.js?v=3.4.0-beta.1"></script>
+  <script src="/static/workbench.js?v=3.4.0-beta.1"></script>
+  <script src="/static/my-tickets.js?v=3.4.0-beta.1"></script>
+  <link rel="stylesheet" href="/static/closure-queue.css?v=3.4.0-beta.1">
+  <script src="/static/batch-receipt.js?v=3.4.0-beta.1"></script>
+  <script src="/static/closure-queue.js?v=3.4.0-beta.1"></script>
+  <link rel="stylesheet" href="/static/whatsapp.css?v=3.4.0-beta.1">
+  <script src="/static/whatsapp.js?v=3.4.0-beta.1"></script>
+<link rel="stylesheet" href="/static/proactive.css?v=3.4.0-beta.1">
+<script src="/static/proactive.js?v=3.4.0-beta.1"></script>
 </body>
 </html>

@@ -9,7 +9,7 @@ def test_closure_has_compact_evidence_preview():
     assert 'id="closureEvidencePreview"' in html
     assert 'id="closurePreviewStrip"' in html
     assert 'id="evidencePreviewDialog"' in html
-    assert '3.4.0-rc4 · Limitless' in html
+    assert '3.4.0-beta.1 · Public Beta' in html
 
 
 def test_preview_reuses_local_files_and_mapping():

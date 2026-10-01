@@ -5,7 +5,7 @@ APP=(ROOT/'package/usr/lib/glpi-assistant/app/static/app.js').read_text()
 CAP=(ROOT/'extension/capture.js').read_text()
 
 def test_receipt_markup_precedes_app_script_and_has_tabs():
-    assert HTML.index('id="applySuccessDialog"') < HTML.index('/static/app.js?v=3.4.0-rc4')
+    assert HTML.index('id="applySuccessDialog"') < HTML.index('/static/app.js?v=3.4.0-beta.1')
     assert 'id="applySuccessVisualTab"' in HTML
     assert 'id="applySuccessLogTab"' in HTML
     assert 'id="applySuccessAppliedList"' in HTML
