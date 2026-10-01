@@ -292,6 +292,8 @@ def test_codeql_covers_python_and_javascript() -> None:
     assert "javascript-typescript" in serialized
     assert "security-events" in serialized
     assert "write" in serialized
+    assert "continue-on-error" in serialized
+    assert "github.event.repository.private" in serialized
 
 
 def test_dependabot_covers_pip_npm_actions() -> None:

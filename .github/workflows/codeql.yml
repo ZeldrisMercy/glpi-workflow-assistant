@@ -33,6 +33,9 @@ jobs:
         with:
           languages: ${{ matrix.language }}
       - uses: github/codeql-action/analyze@v3
+        continue-on-error: ${{ github.event.repository.private }}
         with:
           category: /language:${{ matrix.language }}
-
+      - name: Explain private-repository deferral
+        if: github.event.repository.private
+        run: echo "CodeQL analysis completed locally, but result upload is deferred until GitHub code scanning is available for this repository."
