@@ -1,18 +1,28 @@
 ---
 name: Bug report
-about: Report a reproducible issue without sensitive data
+about: Report a reproducible defect using sanitized evidence
+title: "bug: "
+labels: bug
 ---
 
-## Description
+## What happened?
 
-## Steps to reproduce
+## Reproduction steps
 
-## Expected
-
-## Actual
+## Expected behavior
 
 ## Environment
 
-## Sanitized logs
+- Application version:
+- Linux distribution:
+- Installation method:
+- Browser and Bridge version:
+- GLPI version, if relevant:
 
-> Do not include tokens, customer data, real ticket content, phone numbers, sessions, or internal URLs.
+## Sanitized evidence
+
+Attach logs or screenshots only after removing credentials, personal data, real ticket content, internal URLs, phone numbers and session identifiers.
+
+## Security impact
+
+If this could expose data, credentials or privileged actions, stop and follow [SECURITY.md](../../SECURITY.md) instead of posting details here.

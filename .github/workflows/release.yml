@@ -1,42 +1,62 @@
-name: Release validation
+name: Beta release candidate
 
 on:
+  push:
+    tags:
+      - v3.4.0-beta.1
   workflow_dispatch:
+    inputs:
+      candidate:
+        description: Exact beta version to validate
+        required: true
+        type: choice
+        options:
+          - v3.4.0-beta.1
 
 permissions:
   contents: read
 
 jobs:
-  validate:
+  candidate:
+    if: github.event_name == 'push' || inputs.candidate == 'v3.4.0-beta.1'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
-      - name: Install build dependencies
-        run: python -m pip install -r package/usr/lib/glpi-assistant/app/requirements.txt -r requirements-dev.txt
-      - name: Validate publication files
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
         run: |
-          test -f README.md
-          test -f README.en.md
-          test -f SECURITY.md
-          test -f docs/publication-checklist.md
-          test -f docs/VALIDACAO_3.4.0-rc4.json
-      - name: Build package and extension artifacts
-        run: python scripts/build_portfolio.py
-      - name: Verify generated hashes
-        run: cd dist && sha256sum --check SHA256SUMS
+          python -m pip install -r package/usr/lib/glpi-assistant/app/requirements.txt -r requirements-dev.txt
+          npm ci
+      - name: Validate exact candidate
+        env:
+          GLPI_ASSISTANT_DATA: ${{ runner.temp }}/glpi-assistant-tests
+        run: |
+          python -m pytest tests qa/test_waha_installer.py -q
+          python scripts/check_javascript.py
+          python scripts/audit_publication.py .
+          python scripts/build_portfolio.py
+          python scripts/verify_release.py dist
+          python scripts/audit_publication.py dist
+          cd dist
+          sha256sum --check SHA256SUMS
       - uses: actions/upload-artifact@v5
         with:
-          name: glpi-assistant-rc4-build
+          name: glpi-workflow-assistant-v3.4.0-beta.1
           path: |
-            dist/*.deb
-            dist/*.zip
-            dist/*.xpi
+            dist/glpi-assistant_3.4.0~beta.1-1_all.deb
+            dist/glpi-assistant-bridge_2.4.0_chromium.zip
+            dist/glpi-assistant-bridge_2.4.0_firefox-dev.xpi
             dist/SHA256SUMS
             dist/package-manifest.json
+            dist/sbom.cdx.json
+            docs/project/validation-matrix.md
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30

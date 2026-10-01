@@ -6,6 +6,7 @@ import json
 import struct
 import re
 import xml.etree.ElementTree as ET
+import yaml
 
 from scripts.audit_publication import scan_paths
 from scripts.publication_policy import DEFAULT_POLICY
@@ -239,3 +240,63 @@ def test_docs_do_not_reference_missing_paths() -> None:
             if not target or target.startswith(("http://", "https://", "mailto:")):
                 continue
             assert (source.parent / target).resolve().exists(), f"{source.relative_to(ROOT)} -> {target}"
+
+
+def _workflow(path: str) -> dict[str, object]:
+    return yaml.load((ROOT / path).read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+
+
+def test_ci_invokes_every_release_gate() -> None:
+    workflow = _workflow(".github/workflows/ci.yml")
+    serialized = json.dumps(workflow)
+
+    for command in (
+        "pytest tests qa/test_waha_installer.py",
+        "check_javascript.py",
+        "audit_publication.py .",
+        "pip_audit",
+        "npm audit",
+        "missing_paths",
+        "build_portfolio.py",
+        "verify_release.py dist",
+        "sha256sum --check SHA256SUMS",
+    ):
+        assert command in serialized
+
+
+def test_workflows_use_minimal_permissions() -> None:
+    workflows = sorted((ROOT / ".github/workflows").glob("*.yml"))
+    assert workflows
+    for path in workflows:
+        workflow = yaml.load(path.read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+        permissions = workflow.get("permissions", {})
+        assert permissions.get("contents") == "read", path
+        assert "write-all" not in json.dumps(workflow), path
+
+
+def test_release_requires_beta_tag() -> None:
+    workflow = _workflow(".github/workflows/release.yml")
+    serialized = json.dumps(workflow)
+
+    assert "v3.4.0-beta.1" in serialized
+    assert "workflow_dispatch" in serialized
+    assert "tags" in serialized
+    assert "branches" not in workflow["on"].get("push", {})
+
+
+def test_codeql_covers_python_and_javascript() -> None:
+    workflow = _workflow(".github/workflows/codeql.yml")
+    serialized = json.dumps(workflow)
+
+    assert "python" in serialized
+    assert "javascript-typescript" in serialized
+    assert "security-events" in serialized
+    assert "write" in serialized
+
+
+def test_dependabot_covers_pip_npm_actions() -> None:
+    config = yaml.load((ROOT / ".github/dependabot.yml").read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+    ecosystems = {update["package-ecosystem"] for update in config["updates"]}
+
+    assert ecosystems == {"pip", "npm", "github-actions"}
+    assert all(update["schedule"]["interval"] == "monthly" for update in config["updates"])

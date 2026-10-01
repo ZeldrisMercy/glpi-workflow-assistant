@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, release/public-beta]
   pull_request:
 
 permissions:
@@ -13,9 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -28,20 +28,31 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+          cache: npm
       - name: Install Python dependencies
         run: python -m pip install -r package/usr/lib/glpi-assistant/app/requirements.txt -r requirements-dev.txt
-      - name: Install JavaScript test dependencies
+      - name: Install JavaScript dependencies
         run: npm ci
       - name: Python regression suite
         env:
           GLPI_ASSISTANT_DATA: ${{ runner.temp }}/glpi-assistant-tests
         run: python -m pytest tests qa/test_waha_installer.py -q
-      - name: JavaScript syntax and regression suite
+      - name: JavaScript syntax and DOM regressions
         run: python scripts/check_javascript.py
-      - name: Build deterministic portfolio artifacts
+      - name: Documentation link contract
+        run: python -m pytest tests/test_release_contract.py -k missing_paths -q
+      - name: Publication audit
+        run: python scripts/audit_publication.py .
+      - name: Python dependency vulnerability audit
+        run: python -m pip_audit -r package/usr/lib/glpi-assistant/app/requirements.txt -r requirements-dev.txt
+      - name: npm dependency vulnerability audit
+        run: npm audit --audit-level=high
+      - name: Build deterministic release artifacts
         run: python scripts/build_portfolio.py
-      - name: Block credentials and customer identifiers
-        run: |
-          ! grep -RInE '(Session-Token|App-Token):[[:space:]]*[A-Za-z0-9]{20,}|WAHA_API_KEY=[A-Za-z0-9_-]{20,}|https?://[^ ]*\.corp\b' . \
-            --exclude-dir=.git --exclude-dir=.venv --exclude-dir=node_modules --exclude-dir=dist \
-            --exclude=ci.yml --exclude='.env.example'
+      - name: Verify manifest, SBOM and artifact set
+        run: python scripts/verify_release.py dist
+      - name: Verify artifact hashes
+        working-directory: dist
+        run: sha256sum --check SHA256SUMS
+      - name: Audit generated archives
+        run: python scripts/audit_publication.py dist
