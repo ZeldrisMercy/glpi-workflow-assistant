@@ -57,7 +57,7 @@ def test_release_version_is_consistent() -> None:
 
     assert RELEASE.public_version == "3.4.0-beta.1"
     assert RELEASE.debian_version == "3.4.0~beta.1-1"
-    assert RELEASE.bridge_version == "2.4.0"
+    assert RELEASE.bridge_version == "2.4.1"
     assert package["version"] == RELEASE.public_version
     assert extension["version"] == RELEASE.bridge_version
     assert f"Version: {RELEASE.debian_version}" in control
@@ -90,8 +90,8 @@ def test_artifact_names_use_beta_version() -> None:
 
     assert set(RELEASE.artifact_names) == {
         "glpi-assistant_3.4.0~beta.1-1_all.deb",
-        "glpi-assistant-bridge_2.4.0_chromium.zip",
-        "glpi-assistant-bridge_2.4.0_firefox-dev.xpi",
+        "glpi-assistant-bridge_2.4.1_chromium.zip",
+        "glpi-assistant-bridge_2.4.1_firefox-dev.xpi",
         "package-manifest.json",
         "sbom.cdx.json",
         "SHA256SUMS",

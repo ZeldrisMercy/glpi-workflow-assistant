@@ -53,19 +53,19 @@
   "artifacts": [
     {
       "name": "glpi-assistant_3.4.0~beta.1-1_all.deb",
-      "sha256": "7785bf2c29758d0a886f3757882e5be0cce6528a3975c187dd779607a18d001a"
+      "sha256": "6094fcc0a563830e5172559380396aa1f8509a4115c8f9818089834722b7c181"
     },
     {
-      "name": "glpi-assistant-bridge_2.4.0_chromium.zip",
-      "sha256": "23dd4319ac152df43697538d319aa9c5d483710ab1ab61a13ddcda091a0317ec"
+      "name": "glpi-assistant-bridge_2.4.1_chromium.zip",
+      "sha256": "f03dc5c254bb9398630b1ecad0b16cb397f6c0d7c5ef395b1ef528132db225d7"
     },
     {
-      "name": "glpi-assistant-bridge_2.4.0_firefox-dev.xpi",
-      "sha256": "85a81dab93572fd2b8258d3732507ab1d538d04e4522471778579db9411c9a13"
+      "name": "glpi-assistant-bridge_2.4.1_firefox-dev.xpi",
+      "sha256": "09184e113345602006a29297654bccd8e8a1c1371879d121fa3ef8006edcd2fb"
     },
     {
       "name": "package-manifest.json",
-      "sha256": "f7e5f9dc6aba213a0946b54afa21fb3b3924dd91d6119439a69b2dfaec5ecbfe"
+      "sha256": "4310754959b35ea226d595ced43a5b99fe25be8092deb69ce70e5c408eb75c8d"
     },
     {
       "name": "sbom.cdx.json",
@@ -74,5 +74,10 @@
   ],
   "known_release_blockers": [
     "Clean-host Debian installation has not been executed."
-  ]
+  ],
+  "external_signed_firefox_xpi": {
+    "distribution": "Web Extension Manager",
+    "name": "glpi-assistant-bridge_2.4.1_firefox-signed.xpi",
+    "sha256": "36e7053ee519072ae6f92d824cc89a8eb4e090ae2dd41544f8f13f5fde22976b"
+  }
 }

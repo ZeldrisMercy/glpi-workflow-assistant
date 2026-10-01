@@ -26,5 +26,5 @@ vm.runInContext(fs.readFileSync(path.join(__dirname,'../extension/background.js'
   assert.equal(store.lastSend.evidence_pending,true);
   await context.sendHandoff({ticket_id:901743,closure:'[GLPI_ASSISTANT:901743]\n[TAREFA:T02]\n[EVIDÊNCIA:E01]\n[EVIDÊNCIA:E02]\n[/TAREFA]',task_count:1,images:[{id:'E01',data:imageData},{id:'E02',data:imageData+'x'}]},{manual:true});
   assert.equal(store.captureState22,undefined,'ACK completo pode limpar evidências entregues');
-  console.log('Bridge 2.3.0: ACK parcial preserva prints; ACK completo limpa.');
+  console.log('Bridge 2.4.1: ACK parcial preserva prints; ACK completo limpa.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

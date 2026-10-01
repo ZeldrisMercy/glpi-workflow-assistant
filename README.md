@@ -59,7 +59,7 @@ flowchart LR
 - Existing-ticket closure with T01–T05 tasks and explicit E01/E02 evidence mapping.
 - Proactive single or batch ticket creation with idempotency and partial-result isolation.
 - Approval invalidation when relevant payload fields change.
-- Browser Bridge 2.4.0 for Chromium-based browsers and Firefox development use.
+- Browser Bridge 2.4.1 for Chromium-based browsers plus a signed Firefox XPI artifact for persistent Web Extension Manager installation.
 - Optional restricted WAHA path with recipient verification and no blind resend after uncertainty.
 - Deterministic Debian and extension artifacts, SHA-256 checksums and a scoped CycloneDX SBOM.
 
@@ -121,7 +121,7 @@ python scripts/verify_release.py dist
 python scripts/audit_publication.py . dist
 ```
 
-Release `3.4.0-beta.1` and Browser Bridge `2.4.0` are derived from
+Release `3.4.0-beta.1` and Browser Bridge `2.4.1` are derived from
 [`docs/project/release-manifest.json`](docs/project/release-manifest.json).
 Automated regression coverage uses simulated remote integrations; clean-host
 installation and live interoperability are separate acceptance boundaries.

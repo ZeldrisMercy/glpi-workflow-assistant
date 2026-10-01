@@ -60,7 +60,7 @@ flowchart LR
 - Fechamento de chamado existente com tarefas T01–T05 e associação explícita E01/E02.
 - Criação proativa unitária ou em lote com idempotência e isolamento de resultados parciais.
 - Invalidação da aprovação quando campos relevantes mudam.
-- Browser Bridge 2.4.0 para navegadores Chromium e uso de desenvolvimento no Firefox.
+- Browser Bridge 2.4.1 para navegadores Chromium e artefato XPI assinado para instalação persistente via Web Extension Manager no Firefox.
 - Caminho WAHA opcional e restrito, com validação do destinatário e sem reenvio cego após incerteza.
 - Artefatos Debian/extensão determinísticos, hashes SHA-256 e SBOM CycloneDX com escopo declarado.
 
@@ -124,7 +124,7 @@ python scripts/verify_release.py dist
 python scripts/audit_publication.py . dist
 ```
 
-A release `3.4.0-beta.1` e o Browser Bridge `2.4.0` são derivados de
+A release `3.4.0-beta.1` e o Browser Bridge `2.4.1` são derivados de
 [`docs/project/release-manifest.json`](docs/project/release-manifest.json).
 A cobertura automatizada usa integrações remotas simuladas; instalação em host
 limpo e interoperabilidade real são fronteiras de aceitação separadas.

@@ -3,27 +3,27 @@
     {
       "bytes": 489,
       "name": "SHA256SUMS",
-      "sha256": "d67d3b5af6ab8a58fd7a1eda0cd37a6d57f47888691ff6be71db74dacc08bb26"
+      "sha256": "d16f7c82283753df33188d6f531e88a3c1aacdac047ce40dd2e0e48154bf5c18"
     },
     {
-      "bytes": 57926,
-      "name": "glpi-assistant-bridge_2.4.0_chromium.zip",
-      "sha256": "23dd4319ac152df43697538d319aa9c5d483710ab1ab61a13ddcda091a0317ec"
+      "bytes": 59260,
+      "name": "glpi-assistant-bridge_2.4.1_chromium.zip",
+      "sha256": "f03dc5c254bb9398630b1ecad0b16cb397f6c0d7c5ef395b1ef528132db225d7"
     },
     {
-      "bytes": 57848,
-      "name": "glpi-assistant-bridge_2.4.0_firefox-dev.xpi",
-      "sha256": "85a81dab93572fd2b8258d3732507ab1d538d04e4522471778579db9411c9a13"
+      "bytes": 59178,
+      "name": "glpi-assistant-bridge_2.4.1_firefox-dev.xpi",
+      "sha256": "09184e113345602006a29297654bccd8e8a1c1371879d121fa3ef8006edcd2fb"
     },
     {
-      "bytes": 186234,
+      "bytes": 186866,
       "name": "glpi-assistant_3.4.0~beta.1-1_all.deb",
-      "sha256": "7785bf2c29758d0a886f3757882e5be0cce6528a3975c187dd779607a18d001a"
+      "sha256": "6094fcc0a563830e5172559380396aa1f8509a4115c8f9818089834722b7c181"
     },
     {
       "bytes": 9866,
       "name": "package-manifest.json",
-      "sha256": "f7e5f9dc6aba213a0946b54afa21fb3b3924dd91d6119439a69b2dfaec5ecbfe"
+      "sha256": "4310754959b35ea226d595ced43a5b99fe25be8092deb69ce70e5c408eb75c8d"
     },
     {
       "bytes": 13405,
@@ -31,7 +31,7 @@
       "sha256": "0822acb0dabbabf287496db54c6fc41624f07b6a6893518c849e5c6c4827a4ad"
     }
   ],
-  "bridge_version": "2.4.0",
+  "bridge_version": "2.4.1",
   "debian_version": "3.4.0~beta.1-1",
   "version": "3.4.0-beta.1"
 }

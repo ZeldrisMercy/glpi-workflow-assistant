@@ -1,5 +1,5 @@
 'use strict';
-// GLPI Assistant Bridge 2.4.0 — resilient evidence capture.
+// GLPI Assistant Bridge 2.4.1 — prompt-scoped, resilient evidence capture.
 // Captured bytes stay in Firefox storage/local and localhost handoffs only.
 (() => {
   if (globalThis.__glpiCapture226) return;
@@ -62,6 +62,16 @@
   let inputScanTimer = null;
   const inputSignatures = new WeakMap();
   const deliveredAssignments = new Map();
+  const promptManifests = new Map();
+  const newUuid = () => globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+  async function digestCapture(data) {
+    if (!globalThis.crypto?.subtle) return null;
+    try {
+      const bytes = Uint8Array.from(atob(String(data || '')), (char) => char.charCodeAt(0));
+      const digest = new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes));
+      return [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    } catch { return null; }
+  }
 
   function status(text) {
     if (!root) return;
@@ -135,14 +145,15 @@
     if (host?.isConnected || !document.documentElement) return;
     host = document.createElement('div');
     host.id = 'glpi-original-prints';
+    host.className = 'bridge-capture-chip';
     host.style.cssText = 'position:fixed;right:12px;top:76px;z-index:2147483645';
     root = host.attachShadow({ mode: 'closed' });
     document.documentElement.append(host);
     root.innerHTML = `
       <style>
         :host{all:initial}*{box-sizing:border-box}button,input,select,textarea{font:inherit}textarea{width:100%;padding:10px;border:1px dashed #718bbb;border-radius:9px;background:#101d34;color:#fff;resize:vertical}
-        #toggle{float:right;min-width:32px;min-height:32px;background:linear-gradient(135deg,#07111f,#132c4c);color:#ecfbff;border:1px solid #4bcfff;border-radius:11px;cursor:pointer;font:700 14px system-ui;box-shadow:0 0 24px #2da8ff33}
-        section{clear:both;font:13px/1.45 system-ui;color:#eff9ff;background:linear-gradient(160deg,#07101d 0%,#101a30 70%,#901434 100%);border:1px solid #5178ad;border-radius:14px;width:330px;max-width:92vw;box-shadow:0 18px 60px #000a,0 0 34px #498cff22;padding:15px;margin-top:8px}
+        #toggle{float:right;min-width:36px;min-height:36px;background:#182741;color:#f4f8ff;border:1px solid #6886bc;border-radius:999px;cursor:pointer;font:700 13px system-ui;box-shadow:0 8px 22px #02071266}
+        section{clear:both;font:13px/1.45 system-ui;color:#eff9ff;background:#0d1727;border:1px solid #496a9c;border-radius:14px;width:min(310px,calc(100vw - 28px));box-shadow:0 18px 44px #000a;padding:14px;margin-top:8px}
         summary{cursor:pointer;font-weight:800;color:#f8fdff}p{font-size:12px;color:#aebfd4;margin:7px 0}#list{max-height:220px;overflow:auto;margin-top:8px}
         article{display:grid;grid-template-columns:70px 1fr;gap:9px;align-items:center;margin:8px 0;padding:8px;border:1px solid #ffffff16;border-radius:10px;background:#07101d99}
         img{width:70px;height:58px;object-fit:contain;background:#030711;border-radius:7px;border:1px solid #ffffff12}
@@ -361,6 +372,21 @@
     hasPending: () => files.length > 0,
     stats: () => ({ count: files.length, bytes: files.reduce((n, f) => n + Number(f.size || 0), 0), page: capturedPath, next_ordinal: nextOrdinal, oldest_at: files.length ? Math.min(...files.map(f => Number(f.created_at || Date.now()))) : null, retention_hours: 12 }),
     onReady: (fn) => { ready = fn; },
+    async snapshotForPrompt() {
+      await pending;
+      if (capturedPath !== pageKey() && !promoteCapturedRouteIfSafe(pageKey())) return null;
+      const prompt_id = newUuid();
+      const attachments = await Promise.all(files.map(async (file, index) => ({
+        attachment_id: file.attachment_id || (file.attachment_id = newUuid()), ordinal: index + 1,
+        name: file.name, type: file.type, data: file.data, digest: await digestCapture(file.data),
+        ...(file.role === 'context' || file.id === '' ? { role: 'context' } : {}), state: 'queued',
+      })));
+      if (!attachments.length) return null;
+      const snapshot = { prompt_id, conversation_id: pageKey(), provider: String(location.hostname || location.origin || '').includes('gemini') ? 'gemini' : 'chatgpt', prompt_timestamp: new Date().toISOString(), attachments };
+      promptManifests.set(prompt_id, snapshot);
+      persistSoon();
+      return snapshot;
+    },
     async routePackets(packets){
       await pending;
       if(capturedPath!==pageKey()&&!promoteCapturedRouteIfSafe(pageKey()))return;
@@ -420,7 +446,7 @@
         root.getElementById('toggle').textContent = `📎 ${files.length}${planned.pending || planned.ambiguous ? ' !' : ''}`;
       }
       deliveredAssignments.set(Number(id), new Set(assigned.map((x) => x.file.key)));
-      return { blocked: false, pending: planned.pending, suppressRecovery: files.length > 0, images: assigned.map((x) => ({ id: x.id, data: x.file.data })) };
+      return { blocked: false, pending: planned.pending, suppressRecovery: false, images: assigned.map((x) => ({ id: x.id, data: x.file.data })) };
     },
     async delivered(id) {
       const keys = deliveredAssignments.get(Number(id));
@@ -447,5 +473,5 @@
   mount();
   pending = restore().then(() => { if (ready && files.length) setTimeout(() => ready(0), 0); });
   scanFileInputs();
-  status('Bridge 2.4.0: evidência parcial, seleção, colagem, arraste e varredura periódica ativas.');
+  status('Bridge 2.4.1: capturas do prompt, seleção, colagem, arraste e recuperação segura ativas.');
 })();

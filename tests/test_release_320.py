@@ -64,7 +64,7 @@ def test_bridge_22_contains_outbox_ack_generic_reinjection_and_multi_ticket_guar
     background = (ROOT / 'extension/background.js').read_text(encoding='utf-8')
     content = (ROOT / 'extension/content.js').read_text(encoding='utf-8')
     capture = (ROOT / 'extension/capture.js').read_text(encoding='utf-8')
-    assert '"version": "2.4.0"' in manifest
+    assert '"version": "2.4.1"' in manifest
     assert 'bridgeOutbox22' in background
     assert 'version: 2' in background
     assert 'injectGenericBridge' in background

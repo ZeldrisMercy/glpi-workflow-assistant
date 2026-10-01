@@ -163,6 +163,9 @@ def write_sbom(output: Path) -> None:
 
 def build_release(output: Path, *, write_project_manifest: bool = False) -> dict[str, object]:
     output.mkdir(parents=True, exist_ok=True)
+    for candidate in output.glob("glpi-assistant-bridge_*"):
+        if candidate.is_file():
+            candidate.unlink()
     for name in RELEASE.artifact_names:
         candidate = output / name
         if candidate.exists():

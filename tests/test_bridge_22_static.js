@@ -6,7 +6,7 @@ const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.json'),'utf8'
 const bg=fs.readFileSync(path.join(root,'background.js'),'utf8');
 const content=fs.readFileSync(path.join(root,'content.js'),'utf8');
 const capture=fs.readFileSync(path.join(root,'capture.js'),'utf8');
-assert.equal(manifest.version,'2.4.0');
+assert.equal(manifest.version,'2.4.1');
 assert.ok(manifest.optional_host_permissions.includes('https://*/*'));
 assert.match(bg,/bridgeOutbox22/);
 assert.match(bg,/injectGenericBridge/);
@@ -17,4 +17,4 @@ assert.match(content,/forceContractScan/);
 assert.ok(content.includes('Some SPA renderers expose a fenced/code response with escaped newlines'));
 assert.match(capture,/multiTicket/);
 assert.match(capture,/Vincule cada print ao chamado correto/);
-console.log('Bridge 2.3.0: outbox, reinjeção genérica e isolamento de evidência multi-ticket presentes.');
+console.log('Bridge 2.4.1: outbox, reinjeção genérica, manifesto seguro e isolamento de evidência multi-ticket presentes.');

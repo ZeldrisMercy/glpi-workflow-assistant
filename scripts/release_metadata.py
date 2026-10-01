@@ -24,5 +24,5 @@ class ReleaseMetadata:
 RELEASE = ReleaseMetadata(
     public_version="3.4.0-beta.1",
     debian_version="3.4.0~beta.1-1",
-    bridge_version="2.4.0",
+    bridge_version="2.4.1",
 )

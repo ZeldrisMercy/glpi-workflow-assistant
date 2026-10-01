@@ -7,7 +7,7 @@ WORKBENCH=(ROOT/'package/usr/lib/glpi-assistant/app/static/workbench.js').read_t
 INDEX=(ROOT/'package/usr/lib/glpi-assistant/app/static/index.html').read_text()
 
 def test_bridge_226_and_planner_loaded():
-    assert '"version": "2.4.0"' in MANIFEST
+    assert '"version": "2.4.1"' in MANIFEST
     assert '"evidence-plan.js"' in MANIFEST
     assert 'GLPiEvidencePlan?.plan(required, scoped)' in CAP
 

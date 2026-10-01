@@ -6,7 +6,7 @@
 | Browser Bridge | `python scripts/check_javascript.py` | DOM and browser APIs use deterministic fixtures. |
 | Approval safety | Proactive plan/execute and evidence ACK regressions | A passing test does not authorize a real GLPI write. |
 | Debian package | Two byte-identical builds, metadata and shell syntax | Clean-host installation is recorded separately. |
-| Browser archives | Deterministic ZIP/XPI entries and hashes | Firefox XPI is unsigned and development-only. |
+| Browser archives | Deterministic ZIP/XPI entries, signed XPI hash and release checksums | Signed artifact presence is verified; live browser homologation is not certified. |
 | Dependencies | CycloneDX `sbom.cdx.json` | Covers Python and npm application dependencies only. |
 | Sanitization | Tree, archive and OCR publication audits | Manual screenshot review remains required. |
 
