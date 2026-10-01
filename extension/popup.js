@@ -72,7 +72,7 @@ function render(status, tabContext) {
 
   $('assistantState').textContent = reachable ? `Online · v${info.assistant_version || '?'}` : 'Offline';
   $('pairState').textContent = paired ? (online ? 'Conectado' : 'Pareado') : 'Não pareado';
-  $('versions').textContent = `Bridge v${status?.extensionVersion || '2.4.0'} · Assistant ${info.assistant_version || '—'} · protocolo ${info.protocol || 2}`;
+  $('versions').textContent = `Bridge v${status?.extensionVersion || '2.4.1'} · Assistant ${info.assistant_version || '—'} · protocolo ${info.protocol || 2}`;
   $('outboxState').textContent = outboxCount ? `${outboxCount} pacote(s) aguardando ACK` : 'Outbox vazia · ACK sincronizado';
   const recovery = health?.evidence_recovery || null;
   const recoveryFresh = recovery?.at && Date.now() - Number(recovery.at) < 120000;
@@ -151,7 +151,7 @@ $('activateSite').onclick = async () => {
     const granted = await browser.permissions.request({ origins: [origin] });
     if (!granted) throw new Error('Permissão não concedida para esta IA.');
     await injectBridge(tab.id);
-    setMessage(`Bridge 2.4.0 ativado somente em ${new URL(tab.url).hostname}.`, 'ok');
+    setMessage(`Bridge 2.4.1 ativado somente em ${new URL(tab.url).hostname}.`, 'ok');
     await refresh();
   } catch (error) { setMessage(error?.message || String(error), 'bad'); }
   finally { $('activateSite').disabled = false; }

@@ -48,4 +48,4 @@ Execution receipts distinguish simulated, confirmed and uncertain states. Regres
 
 ## Limitations
 
-This is a public beta, not a production-homologated service. Live GLPI compatibility depends on local schema and permissions. Clean-host acceptance, signed Firefox distribution and hosted multi-user authentication remain separate work. See [known limitations](known-limitations.md).
+This is a public beta, not a production-homologated service. Live GLPI compatibility depends on local schema and permissions. Clean-host acceptance, Mozilla Add-ons listing approval and hosted multi-user authentication remain separate work. See [known limitations](known-limitations.md).

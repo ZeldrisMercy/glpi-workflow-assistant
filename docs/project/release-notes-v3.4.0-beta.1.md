@@ -9,7 +9,7 @@ This first public beta packages the project as an independent, unofficial open-s
 - Dry Run, payload-bound human approval and approval invalidation after edits.
 - Evidence association that separates context from final ticket evidence.
 - Idempotency and explicit uncertain-result reconciliation.
-- Browser Bridge 2.4.0 for structured handoff and acknowledgement.
+- Browser Bridge 2.4.1 for structured handoff, acknowledgement and signed Firefox packaging for persistent Web Extension Manager installation.
 - Optional messaging workflow with separate enablement and honest delivery states.
 - Reproducible Debian and Browser Bridge artifacts with SHA-256 hashes and scoped CycloneDX SBOM.
 - Eight real-UI screenshots produced from deterministic synthetic fixtures.
@@ -21,6 +21,6 @@ Generated text is input, not authorization. A local operator reviews a concrete 
 
 ## Important limitations
 
-This is a beta for a local single-operator environment. Live GLPI behavior depends on the target installation, permissions and catalog. Messaging screenshots are simulations, the Firefox XPI is unsigned, and clean-host installation acceptance is still pending.
+This is a beta for a local single-operator environment. Live GLPI behavior depends on the target installation, permissions and catalog. Messaging screenshots are simulations, the signed Firefox XPI is not a Mozilla Add-ons listing claim, and clean-host installation acceptance is still pending.
 
 See the [known limitations](known-limitations.md), [installation guide](../getting-started/debian-installation.md) and [publication report](publication-report.md).

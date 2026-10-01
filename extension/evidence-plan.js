@@ -50,5 +50,21 @@
     }
     return {assignments,issues};
   }
-  return Object.freeze({plan,route});
+  function resolveManifest(requiredIds,attachments,claims){
+    const required=new Set((requiredIds||[]).map(normId).filter(Boolean));
+    const assigned=[],unresolved=[],issues=[],seenAttachments=new Set(),seenTargets=new Set();
+    for(const claim of claims||[]){
+      const source=Number(claim?.source_index),ticket=Number(claim?.ticket_id),evidence=normId(claim?.evidence_id);
+      const attachment=(attachments||[])[source-1];
+      const target=`${ticket}:${evidence}`;
+      if(!Number.isInteger(source)||!attachment||!Number.isSafeInteger(ticket)||ticket<=0||!required.has(evidence)){issues.push('associação inválida');continue;}
+      if(attachment.role==='context'||attachment.classification==='context'){issues.push('contexto não pode ser evidência');continue;}
+      if(seenAttachments.has(attachment.attachment_id)||seenTargets.has(target)){issues.push('associação duplicada');continue;}
+      seenAttachments.add(attachment.attachment_id);seenTargets.add(target);
+      assigned.push({attachment_id:attachment.attachment_id,source_index:source,ticket_id:ticket,evidence_id:evidence,task_id:String(claim.task_id||'').toUpperCase()});
+    }
+    for(const attachment of attachments||[])if(!assigned.some(x=>x.attachment_id===attachment.attachment_id)&&attachment.role!=='context'&&attachment.classification!=='context')unresolved.push(attachment);
+    return {assignments:assigned,unresolved,issues};
+  }
+  return Object.freeze({plan,route,resolveManifest});
 });

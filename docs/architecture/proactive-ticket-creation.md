@@ -1,6 +1,6 @@
 # Proactive ticket creation
 
-Implemented in **GLPI Workflow Assistant 3.4.0-beta.1** and Browser Bridge **2.4.0**.
+Implemented in **GLPI Workflow Assistant 3.4.0-beta.1** and Browser Bridge **2.4.1**.
 
 The flow converts one prompt into one or multiple reviewable ticket drafts:
 

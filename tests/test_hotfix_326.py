@@ -8,9 +8,9 @@ BACKGROUND = (ROOT / 'extension/background.js').read_text(encoding='utf-8')
 
 
 def test_bridge_225_versioned():
-    assert '"version": "2.4.0"' in MANIFEST
-    assert "bridge_generation: '2.4.0'" in CONTENT
-    assert "bridgeGeneration: '2.4.0'" in BACKGROUND
+    assert '"version": "2.4.1"' in MANIFEST
+    assert "bridge_generation: '2.4.1'" in CONTENT
+    assert "bridgeGeneration: '2.4.1'" in BACKGROUND
 
 
 def test_first_prompt_has_dom_recovery_fallback():

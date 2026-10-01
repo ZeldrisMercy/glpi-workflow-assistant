@@ -1,5 +1,6 @@
 import base64
 import copy
+import hashlib
 import importlib
 import json
 import os
@@ -1140,6 +1141,38 @@ def test_bridge_handoff_carries_review_only_completion_intent(env):
     for bad in ('[/DESTINO_CHAMADO]', 'acao: desconhecido\nincluir_no_lote: sim\nsolucao: Texto válido o bastante.'):
         changed=text.replace('acao: fechar\nincluir_no_lote: sim\nsolucao: Serviço restaurado e testes locais concluídos.\n[/DESTINO_CHAMADO]', bad)
         assert c.post('/api/bridge/handoff',headers={'Authorization':'Bearer test-token'},json={'ticket_id':1,'closure':changed}).status_code==400
+
+
+def test_bridge_capture_ack_persists_prompt_scoped_context(env):
+    c, _ = env
+    set_meta('bridge_token', 'test-token')
+    raw = b'\x89PNG\r\n\x1a\n' + (b'\0' * 16)
+    data = base64.b64encode(raw).decode()
+    digest = hashlib.sha256(raw).hexdigest()
+
+    result = c.post('/api/bridge/captures', headers={'Authorization': 'Bearer test-token'}, json={
+        'prompt_id': 'prompt-123',
+        'conversation_id': 'https://chatgpt.com/c/example',
+        'provider': 'chatgpt',
+        'prompt_timestamp': '2026-10-01T11:50:00Z',
+        'attachments': [{
+            'attachment_id': 'att-1',
+            'ordinal': 1,
+            'name': 'context.png',
+            'type': 'image/png',
+            'data': data,
+            'digest': digest,
+            'role': 'context',
+            'state': 'queued',
+        }],
+    })
+
+    assert result.status_code == 200, result.text
+    assert result.json()['attachments'] == [{'attachment_id': 'att-1', 'digest': digest, 'stored': True}]
+    stored = get_meta('bridge_capture_prompt-123')
+    assert stored['attachments'][0]['digest'] == digest
+    assert stored['attachments'][0]['role'] == 'context'
+    assert stored['attachments'][0]['path'].endswith(digest)
 
 
 def test_waha_activation_baselines_before_return_then_sends_new_assignment(env,monkeypatch):

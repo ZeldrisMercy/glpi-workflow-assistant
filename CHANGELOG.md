@@ -7,7 +7,7 @@
 - Added catalog and actor resolution, prompt timestamps and per-ticket activities.
 - Preserved Dry Run, human approval, payload binding, idempotency and uncertain-result reconciliation.
 - Added per-ticket evidence mapping and responsive batch review.
-- Updated Browser Bridge to 2.4.0 with persistent outbox, acknowledgement and browser compatibility coverage.
+- Updated Browser Bridge to 2.4.1 with prompt-scoped capture, persistent outbox, acknowledgement and signed Firefox packaging.
 - Added a synthetic real-UI evidence gallery with offline capture and OCR publication gates.
 - Added complete English and Portuguese entry points plus task-oriented architecture, security and installation documentation.
 - Added deterministic Debian/bridge builds, SHA-256 verification and a scoped CycloneDX SBOM.

@@ -1,6 +1,6 @@
 'use strict';
 
-// GLPI Assistant Bridge 2.4.0
+// GLPI Assistant Bridge 2.4.1
 // The structured GLPI_ASSISTANT contract is the source of truth. Provider
 // adapters only improve discovery/generation detection; they are not required
 // for parsing or manual handoff.
@@ -421,6 +421,11 @@
         if(!result?.skipped){sentKeys.add(packet.key);showToast('Proativo recebido',packet.draft_ref+' · revise o cadastro e as evidências na aplicação.', 'ok');}
         return result;
       }
+      // Send a prompt-scoped raw capture first. The Assistant stores it as
+      // unresolved/context; it cannot be closing evidence until an explicit
+      // manifest association validates its UUID, digest and ticket.
+      const promptCapture = await globalThis.glpiCapture?.snapshotForPrompt?.();
+      if (promptCapture) void browser.runtime.sendMessage({ type: 'bridge:capture:enqueue', snapshot: promptCapture });
       const captured = await globalThis.glpiCapture?.packetFor(packet.ticket_id, packet.closure, { multiTicket: Number(packetCount) > 1 });
       // Image capture can lag behind the completed text. Prefer original File
       // bytes, then labeled DOM evidence, then recover upload thumbnails from
@@ -644,7 +649,7 @@
         evidence: globalThis.glpiCapture?.stats?.() || { count: 0 },
         evidence_recovery: lastEvidenceRecovery,
         last_mutation_ms: Date.now() - lastMutationAt,
-        bridge_generation: '2.4.0',
+        bridge_generation: '2.4.1',
       });
     }
     return undefined;

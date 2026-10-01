@@ -1,6 +1,6 @@
 # Source map
 
-This repository is a sanitized public-beta snapshot of GLPI Workflow Assistant 3.4.0-beta.1, Browser Bridge 2.4.0 and the pinned optional WAHA installer. It starts a new history and is not a production-homologated release.
+This repository is a sanitized public-beta snapshot of GLPI Workflow Assistant 3.4.0-beta.1, Browser Bridge 2.4.1 and the pinned optional WAHA installer. It starts a new history and is not a production-homologated release.
 
 | Path | Responsibility |
 |---|---|

@@ -1,6 +1,6 @@
 'use strict';
 
-// GLPI Assistant Bridge 2.4.0 background transport.
+// GLPI Assistant Bridge 2.4.1 background transport.
 // Handoffs are first persisted to a local outbox. They leave the outbox only
 // after an explicit HTTP acknowledgement from the Assistant.
 const ASSISTANT_ORIGIN = 'http://127.0.0.1:8765';
@@ -8,20 +8,49 @@ const EXTENSION_VERSION = browser.runtime.getManifest().version;
 const OUTBOX_KEY = 'bridgeOutbox22';
 const DETECTED_KEY = 'bridgeLastDetected222';
 const CAPTURE_KEY = 'captureState22';
+const CAPTURE_OUTBOX_KEY = 'bridgeCaptureOutbox34';
 const CAPTURE_TTL_MS = 12 * 60 * 60 * 1000;
 const MAX_OUTBOX = 20;
 const DEFAULT_SETTINGS = Object.freeze({ autoSend: true, openIfClosed: true, focusOnSend: false, evidenceRetentionHours: 12 });
 let flushPromise = null;
 
 async function readState() {
-  const stored = await browser.storage.local.get(['bridgeToken', 'settings', 'lastSend', DETECTED_KEY, OUTBOX_KEY]);
+  const stored = await browser.storage.local.get(['bridgeToken', 'settings', 'lastSend', DETECTED_KEY, OUTBOX_KEY, CAPTURE_OUTBOX_KEY]);
   return {
     bridgeToken: stored.bridgeToken || '',
     settings: { ...DEFAULT_SETTINGS, ...(stored.settings || {}) },
     lastSend: stored.lastSend || null,
     lastDetected: stored[DETECTED_KEY] || null,
     outbox: Array.isArray(stored[OUTBOX_KEY]) ? stored[OUTBOX_KEY] : [],
+    captureOutbox: Array.isArray(stored[CAPTURE_OUTBOX_KEY]) ? stored[CAPTURE_OUTBOX_KEY] : [],
   };
+}
+
+async function enqueueCapture(snapshot) {
+  if (!snapshot?.prompt_id || !Array.isArray(snapshot.attachments) || !snapshot.attachments.length) return { ok: true, skipped: true };
+  const state = await readState();
+  const existing = state.captureOutbox.find((item) => item.prompt_id === snapshot.prompt_id);
+  if (existing) return existing;
+  const item = { ...snapshot, created_at: Date.now(), attempts: 0, last_error: null };
+  await browser.storage.local.set({ [CAPTURE_OUTBOX_KEY]: [...state.captureOutbox.slice(-MAX_OUTBOX + 1), item] });
+  return item;
+}
+
+async function flushCaptureOutbox() {
+  const state = await readState();
+  if (!state.bridgeToken || !state.captureOutbox.length) return { ok: true, sent: 0, pending: state.captureOutbox.length };
+  const keep = [];
+  let sent = 0;
+  for (const item of state.captureOutbox) {
+    try {
+      const response = await localFetch('/api/bridge/captures', { method: 'POST', body: JSON.stringify(item) }, { token: state.bridgeToken, timeoutMs: 30000 });
+      const allAcked = item.attachments.every((attachment) => attachment.digest && (response.attachments || []).some((ack) => ack.attachment_id === attachment.attachment_id && ack.digest === attachment.digest));
+      if (!allAcked) keep.push({ ...item, attempts: item.attempts + 1, last_error: 'ACK parcial de captura' });
+      else sent += 1;
+    } catch (error) { keep.push({ ...item, attempts: item.attempts + 1, last_error: error.message, last_attempt_at: Date.now() }); }
+  }
+  await browser.storage.local.set({ [CAPTURE_OUTBOX_KEY]: keep });
+  return { ok: keep.length === 0, sent, pending: keep.length };
 }
 
 async function writeSettings(patch) {
@@ -393,7 +422,7 @@ async function sendHandoff(payload, { manual = false } = {}) {
 async function getStatus() {
   const state = await readState();
   const [assistant, pingResult] = await Promise.all([assistantInfo(), state.bridgeToken ? ping(state.bridgeToken) : Promise.resolve({ ok: false, paired: false })]);
-  return { extensionVersion: EXTENSION_VERSION, bridgeGeneration: '2.4.0', paired: state.bridgeToken ? !pingResult.invalidToken : false, settings: state.settings, assistant, ping: pingResult, lastSend: state.lastSend, lastDetected: state.lastDetected, outbox: { count: state.outbox.length, items: state.outbox.map((x) => ({ key: x.key, ticket_id: x.payload.ticket_id, attempts: x.attempts || 0, last_error: x.last_error, created_at: x.created_at })) } };
+  return { extensionVersion: EXTENSION_VERSION, bridgeGeneration: '2.4.1', paired: state.bridgeToken ? !pingResult.invalidToken : false, settings: state.settings, assistant, ping: pingResult, lastSend: state.lastSend, lastDetected: state.lastDetected, outbox: { count: state.outbox.length, items: state.outbox.map((x) => ({ key: x.key, ticket_id: x.payload.ticket_id, attempts: x.attempts || 0, last_error: x.last_error, created_at: x.created_at })) }, captures: { count: state.captureOutbox.length } };
 }
 
 browser.runtime.onMessage.addListener((message, sender) => {
@@ -408,6 +437,8 @@ browser.runtime.onMessage.addListener((message, sender) => {
   if (type === 'bridge:open-whatsapp') return openExistingWhatsapp(message.url, sender);
   if (type === 'bridge:contract-detected') return noteDetectedContract(message.packet || {});
   if (type === 'bridge:handoff') return sendHandoff(message.payload, { manual: !!message.manual });
+  if (type === 'bridge:capture:enqueue') return enqueueCapture(message.snapshot || {}).then((item) => flushCaptureOutbox().then((result) => ({ item, result })));
+  if (type === 'bridge:capture:flush') return flushCaptureOutbox();
   if (type === 'bridge:outbox:flush') return flushOutbox();
   if (type === 'bridge:evidence:cleanup') return cleanupExpiredEvidence({ force: !!message.force });
   if (type === 'bridge:open-assistant') return readState().then(({ settings }) => ensureAssistantTab({ ...settings, openIfClosed: true, focusOnSend: true }));
@@ -464,12 +495,12 @@ function ensureAlarms() {
 browser.runtime.onInstalled.addListener(async () => {
   const state = await readState();
   await browser.storage.local.set({ settings: state.settings, [OUTBOX_KEY]: state.outbox });
-  ensureAlarms(); await ping(state.bridgeToken); void restoreGenericBridges(); void flushOutbox(); void cleanupExpiredEvidence();
+  ensureAlarms(); await ping(state.bridgeToken); void restoreGenericBridges(); void flushOutbox(); void flushCaptureOutbox(); void cleanupExpiredEvidence();
 });
-browser.runtime.onStartup.addListener(async () => { ensureAlarms(); const { bridgeToken } = await readState(); await ping(bridgeToken); void restoreGenericBridges(); void flushOutbox(); void cleanupExpiredEvidence(); });
+browser.runtime.onStartup.addListener(async () => { ensureAlarms(); const { bridgeToken } = await readState(); await ping(bridgeToken); void restoreGenericBridges(); void flushOutbox(); void flushCaptureOutbox(); void cleanupExpiredEvidence(); });
 browser.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'bridge-ping') { const { bridgeToken } = await readState(); await ping(bridgeToken); }
-  if (alarm.name === 'bridge-outbox') void flushOutbox();
+  if (alarm.name === 'bridge-outbox') { void flushOutbox(); void flushCaptureOutbox(); }
   if (alarm.name === 'bridge-evidence-cleanup') void cleanupExpiredEvidence();
 });
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 from contact_policy import self_only_ticket
 from closure_intent import parse_intent
 
+import base64
 import html
 import json
 import hashlib
@@ -23,7 +24,7 @@ from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from evidence_bridge import validate_images, save_images, delete_images
+from evidence_bridge import validate_images, save_images, delete_images, image_type
 
 from glpi import GlpiClient, GlpiConfig, GlpiError, decode_glpi_text
 from parser import EVIDENCE_RE, normalize_contract_text, parse_closure, parse_duration, resolve_bridge_ticket_id, task_state, split_closure_batch
@@ -165,6 +166,14 @@ class BridgeHandoffStatePayload(BaseModel):
 
 class BridgePingPayload(BaseModel):
     extension_version: str | None = None
+
+
+class BridgeCapturePayload(BaseModel):
+    prompt_id: str
+    conversation_id: str | None = None
+    provider: str | None = None
+    prompt_timestamp: str | None = None
+    attachments: list[dict[str, Any]] = []
 
 
 _BRIDGE_PAIR_LOCK = threading.Lock()
@@ -312,7 +321,7 @@ def bridge_info():
         "ok": True,
         "assistant_version": VERSION,
         "protocol": 2,
-        "bridge_generation": "2.4.0",
+        "bridge_generation": "2.4.1",
         "capabilities": ["ack", "persistent-outbox", "multi-ticket", "generic-ai", "evidence-preview", "mirrored-editors", "evidence-ttl"],
         "paired": bool(_bridge_token()),
         "connected": bool(last_seen and age is not None and age <= 90),
@@ -402,7 +411,83 @@ def bridge_ping(payload: BridgePingPayload, request: Request):
     set_meta("bridge_last_seen", now)
     if payload.extension_version:
         set_meta("bridge_extension_version", payload.extension_version)
-    return {"ok": True, "assistant_version": VERSION, "protocol": 2, "bridge_generation": "2.4.0", "ack": True, "now": now}
+    return {"ok": True, "assistant_version": VERSION, "protocol": 2, "bridge_generation": "2.4.1", "ack": True, "now": now}
+
+
+def _safe_capture_prompt_id(prompt_id: str) -> str:
+    safe = re.sub(r"[^A-Za-z0-9_.:-]+", "-", (prompt_id or "").strip())[:96].strip(".:-")
+    if not safe:
+        raise HTTPException(400, "prompt_id inválido")
+    return safe
+
+
+def _store_bridge_capture(payload: BridgeCapturePayload) -> list[dict[str, Any]]:
+    if len(payload.attachments) > 30:
+        raise HTTPException(413, "Limite de 30 capturas por prompt")
+    directory = DATA_DIR / "bridge-captures"
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    stored: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    total = 0
+    for index, item in enumerate(payload.attachments, start=1):
+        attachment_id = re.sub(r"[^A-Za-z0-9_.:-]+", "-", str(item.get("attachment_id") or "").strip())[:96]
+        if not attachment_id or attachment_id in seen:
+            raise HTTPException(400, "Cada captura deve ter attachment_id único")
+        seen.add(attachment_id)
+        try:
+            data = base64.b64decode(str(item.get("data") or ""), validate=True)
+        except Exception as exc:
+            raise HTTPException(400, "Captura base64 inválida") from exc
+        total += len(data)
+        if len(data) > 8 * 1024 * 1024 or total > 20 * 1024 * 1024:
+            raise HTTPException(413, "Limite de 8 MiB por captura e 20 MiB por prompt")
+        ext = image_type(data)
+        if not ext:
+            raise HTTPException(400, "Somente PNG, JPEG ou WebP são aceitos nas capturas")
+        digest = hashlib.sha256(data).hexdigest()
+        supplied_digest = str(item.get("digest") or "").casefold()
+        if not re.fullmatch(r"[0-9a-f]{64}", supplied_digest) or not secrets.compare_digest(supplied_digest, digest):
+            raise HTTPException(400, "Digest da captura não confere")
+        path = directory / digest
+        if not path.exists():
+            path.write_bytes(data)
+            path.chmod(0o600)
+        stored.append({
+            "attachment_id": attachment_id,
+            "ordinal": int(item.get("ordinal") or index),
+            "name": re.sub(r"[/\\\x00-\x1f]+", "-", str(item.get("name") or f"capture-{index}.{ext}"))[:160],
+            "type": "image/" + ("jpeg" if ext == "jpg" else ext),
+            "digest": digest,
+            "role": "context" if str(item.get("role") or "").casefold() == "context" else "unresolved",
+            "state": "received",
+            "path": str(path),
+        })
+    return stored
+
+
+@app.post("/api/bridge/captures")
+def bridge_captures(payload: BridgeCapturePayload, request: Request):
+    _require_bridge_auth(request)
+    prompt_id = _safe_capture_prompt_id(payload.prompt_id)
+    attachments = _store_bridge_capture(payload)
+    now = time.time()
+    set_meta("bridge_last_seen", now)
+    set_meta(f"bridge_capture_{prompt_id}", {
+        "prompt_id": prompt_id,
+        "conversation_id": str(payload.conversation_id or "")[:512],
+        "provider": re.sub(r"[^A-Za-z0-9_.:-]+", "-", str(payload.provider or "browser")).strip("-")[:64] or "browser",
+        "prompt_timestamp": str(payload.prompt_timestamp or "")[:64],
+        "received_at": now,
+        "attachments": attachments,
+    })
+    return {
+        "ok": True,
+        "prompt_id": prompt_id,
+        "attachments": [
+            {"attachment_id": item["attachment_id"], "digest": item["digest"], "stored": True}
+            for item in attachments
+        ],
+    }
 
 
 
