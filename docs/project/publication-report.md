@@ -6,7 +6,7 @@ Candidate validation covers application commit `ffbbf6847b7f7444a455f7e7d8d2c3c8
 
 | Gate | Result | Evidence boundary |
 |---|---:|---|
-| Python | 300 passed; 2 deprecation warnings | temporary state and simulated remote clients |
+| Python | 301 passed; 2 deprecation warnings | temporary state and simulated remote clients |
 | JavaScript | 16 syntax files; 22 regression files | deterministic DOM/browser fixtures |
 | Publication audit | 0 blocking findings | tracked source, release archives and OCR |
 | Release build | byte-identical rebuild | Debian package, two Bridge archives, manifest, SBOM and hashes |

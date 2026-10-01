@@ -173,6 +173,19 @@ def test_readmes_link_each_other() -> None:
     assert "[English](README.md)" in portuguese
 
 
+def test_readme_local_images_exist() -> None:
+    markdown_image = re.compile(r"!\[[^\]]*\]\(([^)]+)\)")
+    html_image = re.compile(r'<img\s+[^>]*src="([^"]+)"', re.IGNORECASE)
+
+    for readme in (ROOT / "README.md", ROOT / "README.pt-BR.md"):
+        text = readme.read_text(encoding="utf-8")
+        sources = markdown_image.findall(text) + html_image.findall(text)
+        local_sources = [source for source in sources if not source.startswith(("http://", "https://"))]
+        assert local_sources
+        for source in local_sources:
+            assert (ROOT / source).is_file(), f"{readme.name}: missing image {source}"
+
+
 def test_readmes_name_beta_and_agpl() -> None:
     for path in (ROOT / "README.md", ROOT / "README.pt-BR.md"):
         text = path.read_text(encoding="utf-8").casefold()

@@ -81,7 +81,7 @@ See the [security policy](SECURITY.md), [threat model](docs/security/threat-mode
 The gallery uses the real application HTML/CSS/JavaScript with intercepted,
 synthetic API fixtures. It performs no real GLPI write or message delivery.
 
-![Central queue using synthetic data](docs/assets/screenshots/01-central.png)
+![Central queue using synthetic data](docs/assets/screenshots/01-central-queue.png)
 
 [Open the evidence gallery and methodology →](docs/assets/screenshots/README.md)
 

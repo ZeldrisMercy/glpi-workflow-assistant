@@ -84,7 +84,7 @@ A galeria usa o HTML/CSS/JavaScript real da aplicação com respostas de API
 sintéticas e interceptadas. Nenhuma escrita real no GLPI ou entrega de mensagem
 é realizada.
 
-![Fila central usando dados sintéticos](docs/assets/screenshots/01-central.png)
+![Fila central usando dados sintéticos](docs/assets/screenshots/01-central-queue.png)
 
 [Abrir a galeria e a metodologia →](docs/assets/screenshots/README.md)
 

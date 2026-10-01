@@ -10,7 +10,7 @@
   "checks": {
     "python_tests": {
       "status": "passed",
-      "passed": 300,
+      "passed": 301,
       "warnings": 2
     },
     "javascript": {
