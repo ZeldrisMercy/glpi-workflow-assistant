@@ -3,7 +3,7 @@
 | Layer | Baseline | Evidence / status |
 |---|---|---|
 | Assistant | 3.4.0-beta.1 | Source and local regression tests verified |
-| Python | Tested 3.12; Docker targets 3.13 | 260 tests on 3.12; Docker installation not verified |
+| Python | Tested 3.12; Docker targets 3.13 | Full suite on 3.12; exact count is recorded in the publication report. Docker installation is not verified |
 | Node | 24.19.0 | 22 JavaScript/DOM scripts and 16 syntax checks passed |
 | Debian package | all, 3.4.0~beta.1-1 | Metadata, syntax and extraction checked; clean-host acceptance pending |
 | Browser Bridge | 2.4.0 | Manifest and static tests checked; live browser compatibility not certified |

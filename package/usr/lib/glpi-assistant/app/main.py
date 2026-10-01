@@ -48,7 +48,7 @@ from store import (
     upsert_catalog_item,
 )
 
-VERSION = "3.4.0-rc4"
+VERSION = "3.4.0-beta.1"
 STATIC = Path(__file__).parent / "static"
 PROMPT_PATH = Path(__file__).parent / "PROMPT_FORMALIZACAO.md"
 

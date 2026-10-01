@@ -4,7 +4,7 @@ set -Eeuo pipefail
 APP_DIR=/usr/lib/glpi-assistant/app
 IMAGE_TAR=/usr/lib/glpi-assistant/glpi-assistant-image.tar
 DATA_DIR=/var/lib/glpi-assistant/data
-IMAGE=glpi-assistant:3.4.0-rc4
+IMAGE=glpi-assistant:3.4.0-beta.1
 URL=http://127.0.0.1:8765
 
 mkdir -p "$DATA_DIR"

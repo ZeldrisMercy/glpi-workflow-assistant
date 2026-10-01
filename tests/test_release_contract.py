@@ -63,6 +63,28 @@ def test_release_version_is_consistent() -> None:
     assert f"Version: {RELEASE.debian_version}" in control
 
 
+def test_packaged_runtime_version_is_consistent() -> None:
+    from scripts.release_metadata import RELEASE
+
+    main = (ROOT / "package/usr/lib/glpi-assistant/app/main.py").read_text(encoding="utf-8")
+    prompt = (ROOT / "package/usr/lib/glpi-assistant/app/PROMPT_FORMALIZACAO.md").read_text(encoding="utf-8")
+
+    assert f'VERSION = "{RELEASE.public_version}"' in main
+    assert "3.4.0-rc3" not in prompt.casefold()
+    assert "3.4.0-rc4" not in prompt.casefold()
+
+
+def test_container_image_tag_is_consistent() -> None:
+    from scripts.release_metadata import RELEASE
+
+    postinst = (ROOT / "package/DEBIAN/postinst").read_text(encoding="utf-8")
+    runner = (ROOT / "package/usr/lib/glpi-assistant/run-container.sh").read_text(encoding="utf-8")
+    expected = f"IMAGE=glpi-assistant:{RELEASE.public_version}"
+
+    assert expected in postinst
+    assert expected in runner
+
+
 def test_artifact_names_use_beta_version() -> None:
     from scripts.release_metadata import RELEASE
 
@@ -272,6 +294,16 @@ def test_workflows_use_minimal_permissions() -> None:
         permissions = workflow.get("permissions", {})
         assert permissions.get("contents") == "read", path
         assert "write-all" not in json.dumps(workflow), path
+
+
+def test_workflows_pin_actions_to_commit_shas() -> None:
+    for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
+        workflow = yaml.load(path.read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+        for job in workflow.get("jobs", {}).values():
+            for step in job.get("steps", []):
+                if "uses" not in step:
+                    continue
+                assert re.fullmatch(r"[^@]+@[0-9a-f]{40}", step["uses"]), (path, step["uses"])
 
 
 def test_release_requires_beta_tag() -> None:

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-IMAGE=glpi-assistant:3.4.0-rc3
+IMAGE=glpi-assistant:3.4.0-beta.1
 DATA_DIR=/var/lib/glpi-assistant/data
 NAME=glpi-assistant
 

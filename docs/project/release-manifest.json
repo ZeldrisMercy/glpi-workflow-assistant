@@ -3,7 +3,7 @@
     {
       "bytes": 489,
       "name": "SHA256SUMS",
-      "sha256": "b5285cdd00944a8fbc5d2c3e1e154b09d50b09e2cd70a031f28787ee4d6b4ef6"
+      "sha256": "d67d3b5af6ab8a58fd7a1eda0cd37a6d57f47888691ff6be71db74dacc08bb26"
     },
     {
       "bytes": 57926,
@@ -16,14 +16,14 @@
       "sha256": "85a81dab93572fd2b8258d3732507ab1d538d04e4522471778579db9411c9a13"
     },
     {
-      "bytes": 186264,
+      "bytes": 186234,
       "name": "glpi-assistant_3.4.0~beta.1-1_all.deb",
-      "sha256": "4261673eba720ef4eac0c00f39177c81d16a3a84178a15fbd212a865c324fc1a"
+      "sha256": "7785bf2c29758d0a886f3757882e5be0cce6528a3975c187dd779607a18d001a"
     },
     {
       "bytes": 9866,
       "name": "package-manifest.json",
-      "sha256": "91c62693ab530c24ddf1390bd7b1bd90b7e6c052a5a6015b80d2858a7564c886"
+      "sha256": "f7e5f9dc6aba213a0946b54afa21fb3b3924dd91d6119439a69b2dfaec5ecbfe"
     },
     {
       "bytes": 13405,
