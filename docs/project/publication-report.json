@@ -33,9 +33,9 @@
       "run_id": 36807751963
     },
     "codeql": {
-      "status": "public_rerun_pending",
-      "run_id": null,
-      "reason": "This publication-state commit triggers strict CodeQL result upload for the now-public repository."
+      "status": "passed_publicly",
+      "run_id": 36811350560,
+      "reason": "Python and JavaScript analysis and public result upload completed successfully."
     },
     "screenshots": {
       "status": "passed",
@@ -73,7 +73,6 @@
     }
   ],
   "known_release_blockers": [
-    "Clean-host Debian installation has not been executed.",
-    "CodeQL public result upload must complete successfully."
+    "Clean-host Debian installation has not been executed."
   ]
 }

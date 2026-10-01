@@ -13,7 +13,7 @@ Candidate validation covers application commit `ffbbf6847b7f7444a455f7e7d8d2c3c8
 | SHA-256 | 5 payload checks verified | `dist/SHA256SUMS` |
 | GitHub CI | passed | run `36807751963`, including `npm ci`, dependency audits and build gates |
 | Screenshots | 8 passed | zero external requests, zero real GLPI writes and zero OCR findings |
-| CodeQL | public rerun pending | private analysis passed for Python and JavaScript; this publication-state commit triggers strict public result upload |
+| CodeQL | passed publicly | Python and JavaScript result upload succeeded in run `36811350560` |
 | Clean-host installation | not executed | current runner has neither systemd nor Docker |
 
 ## Release artifacts
@@ -40,7 +40,6 @@ The capture harness rendered eight application views using synthetic fixtures. I
 
 ## Pending publication gates
 
-1. CodeQL public result upload must finish successfully.
-2. A disposable supported Linux host must complete install, loopback health, synthetic workflow, backup and removal/rollback acceptance, or the limitation must remain prominent.
+1. A disposable supported Linux host must complete install, loopback health, synthetic workflow, backup and removal/rollback acceptance, or the limitation must remain prominent.
 
 `visibility_change_authorized: true`
