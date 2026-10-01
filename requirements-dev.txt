@@ -3,4 +3,4 @@ httpx==0.28.1
 playwright==1.58.0
 Pillow==12.3.0
 PyYAML==6.0.3
-pip-audit==2.9.0
+pip-audit==2.10.1
