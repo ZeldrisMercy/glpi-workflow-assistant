@@ -1,0 +1,26 @@
+const {JSDOM}=require(process.env.JSDOM_PATH);const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
+const root=path.join(__dirname,'../package/usr/lib/glpi-assistant/app/static');
+const dom=new JSDOM(fs.readFileSync(path.join(root,'index.html'),'utf8'),{url:'http://localhost:8765',runScripts:'outside-only'}),w=dom.window;
+w.executionBusy=false;w.normalizeText=x=>x;w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
+w.eval(fs.readFileSync(path.join(root,'closure-queue.js'),'utf8'));
+const packet=(id,text='[EVIDÊNCIA: E01]\n[EVIDÊNCIA: E02]')=>({id,ticket_id:id,closure:`[GLPI_ASSISTANT:${id}]\n${text}`});
+const file=(name,eid,ticket)=>{const f=new w.File(['image'],name,{type:'image/png'});if(eid){f.bridgeEvidenceId=eid;f.bridgeTicketId=ticket;}return f;};
+const panel=id=>[...w.document.querySelectorAll('.closure-pane')].find(p=>Number(p.querySelector('[data-ticket]').value)===id);
+const mapped=id=>[...panel(id).querySelectorAll('[data-mapping] select')].map(s=>s.selectedOptions[0]?.textContent);
+(async()=>{
+ await w.ClosureQueue.receive(packet(1),{files:[file('Screenshot B.png','E02',1),file('Screenshot A.png','E01',1)]});
+ assert.deepEqual(mapped(1),['Screenshot A.png','Screenshot B.png']);
+ await w.ClosureQueue.receive(packet(2),{files:[]});
+ await w.ClosureQueue.receive(packet(2),{files:[file('late.png','E01',2)]});assert.equal(mapped(2)[0],'late.png');
+ await w.ClosureQueue.receive(packet(3),{files:[]});
+ const picker=panel(3).querySelector('[data-picker]');picker.onchange({target:{files:[file('first.png'),file('second.png')],value:''}});
+ assert.deepEqual(mapped(3),['first.png','second.png']);
+ const select=panel(3).querySelector('[data-mapping] select');select.value='';select.onchange();panel(3).querySelector('[data-text]').dispatchEvent(new w.Event('change'));assert.equal(mapped(3)[0],'Associe o print desta evidência');
+ await assert.rejects(w.ClosureQueue.receive(packet(4),{files:[file('wrong.png','E01',1)]}),/outro chamado/);assert.equal(panel(4),undefined);
+ await w.ClosureQueue.receive(packet(5),{files:[file('unknown.png')]});assert.equal(mapped(5)[0],'Associe o print desta evidência');
+ await w.ClosureQueue.receive(packet(6),{files:[]});panel(6).querySelector('[data-picker]').onchange({target:{files:[file('a.png'),file('b.png'),file('c.png')],value:''}});assert.equal(mapped(6)[0],'Associe o print desta evidência');
+ await assert.rejects(w.ClosureQueue.receive(packet(3),{files:[file('late.png','E01',3)]}),/preservada na Inbox/);
+ panel(2).querySelector('[data-text]').value+='\nTexto manual';await assert.rejects(w.ClosureQueue.receive(packet(2),{files:[file('second.png','E02',2)]}),/texto editado/);
+ assert.deepEqual(mapped(1),['Screenshot A.png','Screenshot B.png']);
+ console.log('PASS: Bridge IDs, delayed same-packet images, local order, manual clearing, cross-ticket rejection, unknown Bridge images, excess files, ticket isolation');dom.window.close();
+})().catch(e=>{console.error(e);dom.window.close();process.exitCode=1;});

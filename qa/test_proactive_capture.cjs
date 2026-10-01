@@ -1,0 +1,21 @@
+const assert=require('assert'),fs=require('fs');
+const {JSDOM}=require(process.env.JSDOM_PATH);
+(async()=>{
+ const dom=new JSDOM('<textarea id="prompt-textarea"></textarea><button aria-label="Send message">Send</button>',{url:'https://chatgpt.com/',runScripts:'outside-only'}),w=dom.window;
+ let restoreStorage;
+ w.browser={storage:{local:{get:()=>new Promise(resolve=>restoreStorage=resolve),set:async()=>{},remove:async()=>{}}}};
+ w.GLPiEvidencePlan=require('../extension/evidence-plan.js');
+ w.eval(fs.readFileSync(__dirname+'/../extension/capture.js','utf8'));
+ const paste=async(name,content)=>{const e=new w.Event('paste');Object.defineProperty(e,'clipboardData',{value:{files:[new w.File([content],name,{type:'image/png',lastModified:Date.now()})]}});w.document.dispatchEvent(e);await new Promise(r=>setTimeout(r,30));};
+ const send=text=>{w.document.querySelector('textarea').value=text;w.document.querySelector('button').click();};
+ await paste('first.png','FIRST');send('Primeiro proativo');
+ restoreStorage({captureState22:{page:'https://chatgpt.com/',files:[{key:'old',name:'old.png',type:'image/png',data:'T0xE',size:3}]}});
+ let p=await w.glpiCapture.proactiveFor({draft_ref:'P01',evidence:[{id:'E01',source_index:1}]},'Primeiro proativo');
+ assert.equal(p.images.length,1);assert.equal(Buffer.from(p.images[0].data,'base64').toString(),'FIRST');assert(p.prompt_timestamp);
+ await paste('second.png','SECOND');send('Segundo proativo');
+ p=await w.glpiCapture.proactiveFor({draft_ref:'P02',evidence:[{id:'E01',source_index:1}]},'Segundo proativo');
+ assert.equal(p.images.length,1);assert.equal(Buffer.from(p.images[0].data,'base64').toString(),'SECOND');
+ const wrong=await w.glpiCapture.proactiveFor({draft_ref:'P02',evidence:[{id:'E01',source_index:1}]},'Outra conversa');assert.equal(wrong.images.length,0);assert.equal(wrong.prompt_timestamp,null);
+ const context=await w.glpiCapture.proactiveFor({draft_ref:'P02',evidence:[{id:'E01',source_index:1,role:'context'}]},'Segundo proativo');assert.equal(context.images.length,0);
+ w.close();console.log('PASS proactive first-prompt images, per-prompt order, mismatch and context exclusion');
+})().catch(e=>{console.error(e);process.exit(1)});

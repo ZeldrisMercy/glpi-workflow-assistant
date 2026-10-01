@@ -1,0 +1,22 @@
+{
+  "mode": "real application HTML/CSS/JavaScript with deterministic synthetic API fixtures",
+  "capture_framing": "The T01–T05 view applies capture-only CSS to arrange the five existing UI cards in one viewport; content and state are unchanged.",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "captures": [
+    "01-central-queue.png",
+    "02-expanded-ticket.png",
+    "03-t01-t05-review.png",
+    "04-dry-run.png",
+    "05-proactive-batch.png",
+    "06-evidence-association.png",
+    "07-execution-receipt.png",
+    "08-messaging-status.png"
+  ],
+  "page_errors": [],
+  "blocked_external_requests": [],
+  "external_requests_fulfilled": 0,
+  "real_glpi_writes": 0
+}

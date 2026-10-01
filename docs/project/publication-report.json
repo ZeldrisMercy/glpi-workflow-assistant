@@ -1,0 +1,80 @@
+{
+  "version": "3.4.0-beta.1",
+  "repository": "ZeldrisMercy/glpi-workflow-assistant",
+  "repository_visibility": "private",
+  "validated_remote_commit": "ffbbf6847b7f7444a455f7e7d8d2c3c81574c31c",
+  "validated_tree": "b62c9d89a36b4138c08fb67a3dc29400359cc16e",
+  "evidence_commit_scope": "documentation only; application and release artifacts unchanged",
+  "validated_at_utc": "2026-10-01T02:53:22Z",
+  "visibility_change_authorized": false,
+  "checks": {
+    "python_tests": {
+      "status": "passed",
+      "passed": 300,
+      "warnings": 2
+    },
+    "javascript": {
+      "status": "passed",
+      "syntax_files": 16,
+      "regression_files": 22
+    },
+    "publication_audit": {
+      "status": "passed",
+      "blocking_findings": 0,
+      "scope": ["tracked tree", "Debian package", "Chromium archive", "Firefox development archive", "screenshot OCR"]
+    },
+    "release_verification": {
+      "status": "passed",
+      "rebuild_byte_identical": true,
+      "checksums_verified": 5
+    },
+    "github_ci": {
+      "status": "passed",
+      "run_id": 36807751963
+    },
+    "codeql": {
+      "status": "configured_private_deferred",
+      "run_id": 36807751998,
+      "reason": "GitHub code scanning result upload is unavailable while this repository is private; the workflow becomes strict when public."
+    },
+    "screenshots": {
+      "status": "passed",
+      "images": 8,
+      "external_requests_fulfilled": 0,
+      "real_glpi_writes": 0,
+      "blocking_ocr_findings": 0,
+      "manual_review": "agent-reviewed; owner review pending"
+    },
+    "clean_host_installation": {
+      "status": "not_executed",
+      "reason": "The validation runner has no systemd or Docker runtime; installation success is not claimed."
+    }
+  },
+  "artifacts": [
+    {
+      "name": "glpi-assistant_3.4.0~beta.1-1_all.deb",
+      "sha256": "7785bf2c29758d0a886f3757882e5be0cce6528a3975c187dd779607a18d001a"
+    },
+    {
+      "name": "glpi-assistant-bridge_2.4.0_chromium.zip",
+      "sha256": "23dd4319ac152df43697538d319aa9c5d483710ab1ab61a13ddcda091a0317ec"
+    },
+    {
+      "name": "glpi-assistant-bridge_2.4.0_firefox-dev.xpi",
+      "sha256": "85a81dab93572fd2b8258d3732507ab1d538d04e4522471778579db9411c9a13"
+    },
+    {
+      "name": "package-manifest.json",
+      "sha256": "f7e5f9dc6aba213a0946b54afa21fb3b3924dd91d6119439a69b2dfaec5ecbfe"
+    },
+    {
+      "name": "sbom.cdx.json",
+      "sha256": "0822acb0dabbabf287496db54c6fc41624f07b6a6893518c849e5c6c4827a4ad"
+    }
+  ],
+  "known_release_blockers": [
+    "Owner review and explicit visibility authorization are still required.",
+    "Clean-host Debian installation has not been executed.",
+    "CodeQL result upload must complete successfully after public code scanning becomes available."
+  ]
+}

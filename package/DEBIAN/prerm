@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -e
+# Preserve the existing service until the upgrade preinst creates its backup.
+if [ "${1:-}" = "upgrade" ]; then exit 0; fi
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl disable --now glpi-assistant.service >/dev/null 2>&1 || true
+fi
+docker rm -f glpi-assistant >/dev/null 2>&1 || true
+# Stop only our managed WAHA service; retain credentials and session for reinstall.
+if [ "${1:-}" = remove ] || [ "${1:-}" = deconfigure ]; then
+  if [ "$(docker inspect --format '{{index .Config.Labels "glpi-assistant.component"}}' glpi-assistant-waha 2>/dev/null)" = waha ]; then
+    docker update --restart=no glpi-assistant-waha >/dev/null 2>&1 || true
+    docker stop -t 20 glpi-assistant-waha >/dev/null 2>&1 || true
+  fi
+fi
+exit 0

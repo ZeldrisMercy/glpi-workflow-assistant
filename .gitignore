@@ -20,3 +20,4 @@ server.env
 sessions/
 *.log
 .worktrees/
+.superpowers/

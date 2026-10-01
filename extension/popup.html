@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GLPI Assistant Bridge</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="brand-mark" aria-hidden="true">∞</div>
+      <div class="brand-copy">
+        <div class="eyebrow">LIMITLESS BRIDGE</div>
+        <h1>GLPI Assistant</h1>
+        <p>Do atendimento à revisão, sem perder contexto.</p>
+      </div>
+      <span id="statusBadge" class="status-badge neutral"><i aria-hidden="true"></i><span id="statusBadgeText">Verificando</span></span>
+    </header>
+
+    <section class="summary-card" aria-label="Estado do Bridge">
+      <div class="summary-item">
+        <span>Assistant</span>
+        <strong id="assistantState">Verificando…</strong>
+      </div>
+      <div class="summary-item">
+        <span>IA atual</span>
+        <strong id="providerState">Abra uma IA compatível</strong>
+      </div>
+    </section>
+
+    <section id="lastSendCard" class="last-send-card hidden" aria-label="Último envio">
+      <div>
+        <div id="lastSendEyebrow" class="eyebrow">ÚLTIMO ENVIO</div>
+        <strong id="lastSendTitle">—</strong>
+        <p id="lastSendMeta">—</p>
+      </div>
+      <span id="lastSendState" class="mini-state">—</span>
+    </section>
+
+    <section id="pairPanel" class="panel pair-panel hidden">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">PAREAMENTO</div>
+          <h2>Conectar ao Assistant</h2>
+        </div>
+      </div>
+      <p>Gere um código em <strong>Bridge e IA</strong> no Assistant e digite os 6 números abaixo.</p>
+      <div class="pair-row">
+        <label class="sr-only" for="pairCode">Código de pareamento</label>
+        <input id="pairCode" inputmode="numeric" maxlength="7" placeholder="000-000" autocomplete="one-time-code">
+        <button id="pairBtn" class="primary" disabled>Conectar</button>
+      </div>
+      <div id="pairMessage" class="message" aria-live="polite"></div>
+    </section>
+
+    <button id="sendLast" class="primary send-cta" disabled>
+      <span class="cta-mark">∞</span>
+      <span id="sendLastText">Detectando fechamento atual…</span>
+    </button>
+    <div id="sendHint" class="send-hint">Texto e prints só saem da fila após confirmação do Assistant.</div>
+
+    <section id="resilienceCard" class="resilience-card">
+      <div><div class="eyebrow">FILA DE ENVIO</div><strong id="outboxState">Nenhum envio pendente</strong><p id="resilienceNote">Seus prints permanecem protegidos até a confirmação.</p></div>
+      <div class="resilience-actions">
+        <button id="activateSite" class="secondary hidden">Ativar nesta IA</button>
+        <button id="repairCapture" class="ghost">Reparar capturador</button>
+        <button id="flushOutbox" class="ghost">Reenviar fila</button>
+        <button id="cleanupEvidence" class="ghost">Limpar prints antigos</button>
+      </div>
+    </section>
+
+    <details class="disclosure"><summary>📎 Prints do fechamento</summary><p>Opcional: selecione apenas evidências técnicas. Nomeie E01.png, E02.png… para associar com precisão. Serão enviados ao clicar em enviar fechamento.</p><input id="bridgePrints" type="file" multiple accept="image/png,image/jpeg,image/webp"><div id="bridgePrintNames"></div></details>
+    <button id="captureGlpi" class="secondary">Usar chamado GLPI desta aba como referência</button>
+    <div class="quick-actions">
+      <button id="openAssistant" class="secondary">Abrir Assistant</button>
+      <button id="refresh" class="ghost">Atualizar status</button>
+    </div>
+
+    <details id="settingsPanel" class="disclosure hidden">
+      <summary><span>Configurações</span><span class="summary-note">Automação</span></summary>
+      <div class="disclosure-body">
+        <label class="toggle">
+          <input id="autoSend" type="checkbox">
+          <span class="switch" aria-hidden="true"></span>
+          <span class="toggle-copy"><strong>Envio automático</strong><small>Envia pacotes válidos automaticamente. Fechamento novo segue T01–T05; continuação preserva as tarefas existentes.</small></span>
+        </label>
+        <label class="toggle">
+          <input id="openIfClosed" type="checkbox">
+          <span class="switch" aria-hidden="true"></span>
+          <span class="toggle-copy"><strong>Abrir Assistant se necessário</strong><small>Cria uma aba somente quando não houver uma já aberta.</small></span>
+        </label>
+        <label class="toggle">
+          <input id="focusOnSend" type="checkbox">
+          <span class="switch" aria-hidden="true"></span>
+          <span class="toggle-copy"><strong>Focar após envio</strong><small>Mantém desligado por padrão para não interromper a conversa.</small></span>
+        </label>
+        <div class="retention-note"><strong>Retenção de evidências</strong><small>12 h para prints abandonados. Prints só somem após ACK completo de texto + evidências; itens parciais/Outbox ficam protegidos.</small></div>
+      </div>
+    </details>
+
+    <details class="disclosure">
+      <summary><span>Diagnóstico</span><span id="diagSummary" class="summary-note">—</span></summary>
+      <div class="disclosure-body diagnostics">
+        <div><span>Capturador</span><strong id="captureState">—</strong></div>
+        <div><span>Pareamento</span><strong id="pairState">—</strong></div>
+        <div><span>Versões</span><strong id="versions">—</strong></div>
+        <p>Credencial, outbox e prints temporários ficam no perfil local do Firefox. O User Token do GLPI não é enviado à extensão.</p>
+      </div>
+    </details>
+
+    <button id="disconnect" class="danger-link hidden">Revogar pareamento</button>
+    <div id="message" class="message footer-message" aria-live="polite"></div>
+    <footer>Made by ZeldrisMercy</footer>
+  </main>
+  <script src="browser-compat.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

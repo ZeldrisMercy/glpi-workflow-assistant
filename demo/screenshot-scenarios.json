@@ -1,0 +1,14 @@
+{
+  "base_url": "http://127.0.0.1:8765",
+  "viewport": {"width": 1440, "height": 1000},
+  "scenarios": [
+    {"file": "01-central-queue.png", "name": "Central queue", "synthetic": true, "real_writes": 0, "caption": "Fila local com um chamado inteiramente sintético."},
+    {"file": "02-expanded-ticket.png", "name": "Expanded ticket", "synthetic": true, "real_writes": 0, "caption": "Detalhes, ações e estado do atendimento sintético."},
+    {"file": "03-t01-t05-review.png", "name": "T01–T05 review", "synthetic": true, "real_writes": 0, "caption": "Registro estruturado analisado localmente antes de qualquer aplicação."},
+    {"file": "04-dry-run.png", "name": "Dry Run", "synthetic": true, "real_writes": 0, "caption": "Plano de operações sintético aguardando aprovação humana."},
+    {"file": "05-proactive-batch.png", "name": "Proactive batch", "synthetic": true, "real_writes": 0, "caption": "Dois rascunhos proativos sintéticos em revisão por lote."},
+    {"file": "06-evidence-association.png", "name": "Evidence association", "synthetic": true, "real_writes": 0, "caption": "Associação local de uma evidência sintética à atividade E01."},
+    {"file": "07-execution-receipt.png", "name": "Execution receipt", "synthetic": true, "real_writes": 0, "caption": "Comprovante simulado do executor offline; nenhuma escrita remota ocorreu."},
+    {"file": "08-messaging-status.png", "name": "Optional messaging status", "synthetic": true, "real_writes": 0, "caption": "Estado simulado da integração opcional; entrega real não verificada."}
+  ]
+}

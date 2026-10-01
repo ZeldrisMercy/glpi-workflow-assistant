@@ -1,0 +1,28 @@
+const {JSDOM}=require(process.env.JSDOM_PATH),assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),vm=require('vm');
+const base=path.join(__dirname,'..'),staticRoot=path.join(base,'package/usr/lib/glpi-assistant/app/static');
+const source=fs.readFileSync(path.join(base,'extension/content.js'),'utf8');
+const fragment=source.slice(source.indexOf('  function parseSinglePacket('),source.indexOf('  // Isolated-world diagnostic hook'));
+const context={provider:{id:'chatgpt',label:'ChatGPT'},normalizeText:x=>x};vm.createContext(context);vm.runInContext(fragment,context);
+const task='[TAREFA:T01]\nmodalidade: REMOTO\nnivel: N1\ntempo: 00:02\nestado: FEITO\nConferência realizada.\n[/TAREFA]';
+const block=(id,action='fechar')=>`[GLPI_ASSISTANT:${id}]\n${task}\n[DESTINO_CHAMADO]\nacao: ${action}\nincluir_no_lote: sim\nsolucao: Serviço testado, operação normalizada.\n[/DESTINO_CHAMADO]`;
+const packets=context.extractBridgePackets(`${block(23)}\n${block(24,'solucionar')}`);
+assert.equal(packets.length,2);assert(packets[0].closure.includes('acao: fechar'));assert(packets[1].closure.includes('acao: solucionar'));
+assert.equal(context.extractBridgePackets(`[GLPI_ASSISTANT:23]\n${task}\n[DESTINO_CHAMADO]\nacao: fechar`).length,0);
+const dom=new JSDOM(fs.readFileSync(path.join(staticRoot,'index.html'),'utf8'),{url:'http://localhost:8765',runScripts:'outside-only'}),w=dom.window;
+w.executionBusy=false;w.normalizeText=x=>x;w.jsonOpts=x=>({json:x});w.confirm=()=>true;
+const finalized=[],tasks=[];w.finishAfterFormalization=async(...args)=>finalized.push(args);w.api=async(url,opts)=>{if(url==='/api/plan')return {ticket:{id:opts.json.ticket_id,title:'Teste'},required_evidence_ids:[],parsed:{evidence_ids:[]},operations:[],task_count:1,has_actionable_operations:true,plan_id:String(opts.json.ticket_id)};if(url==='/api/execute'){tasks.push(Number(opts.body.get('ticket_id')));return {ok:true,verified_task_count:1,expected_task_count:1,errors:[]};}throw Error(url)};
+w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
+w.eval(fs.readFileSync(path.join(staticRoot,'batch-receipt.js'),'utf8'));w.eval(fs.readFileSync(path.join(staticRoot,'closure-queue.js'),'utf8'));
+(async()=>{
+ for(const [i,p] of packets.entries())await w.ClosureQueue.receive({id:i+100,ticket_id:p.ticket_id,closure:p.closure,intent:{target:i?'solve':'close',solution:'Serviço testado, operação normalizada.',include_in_batch:true}}, {files:[],activate:false});
+ const panels=[...w.document.querySelectorAll('.closure-pane')];assert.deepEqual(panels.map(x=>x.querySelector('[data-target]').value),['close','solve']);assert(panels.every(x=>x.querySelector('[data-selected]').checked));assert.equal(w.document.querySelector('#operacao').classList.contains('queue-mode'),true);
+ await w.ClosureQueue.receive({id:100,ticket_id:23,closure:packets[0].closure+'\n',intent:{target:'solve',solution:'Novo texto validado pelo técnico.',include_in_batch:false}}, {files:[],activate:false});
+ assert.equal(panels[0].querySelector('[data-target]').value,'solve');assert.equal(panels[0].querySelector('[data-selected]').checked,false);
+ panels[0].querySelector('[data-solution]').value='Solução ajustada manualmente.';
+ await w.ClosureQueue.receive({id:100,ticket_id:23,closure:packets[0].closure+'\n',images:[{id:'E01'}],intent:{target:'solve',solution:'Novo texto validado pelo técnico.',include_in_batch:false}}, {files:[],activate:false});
+ assert.equal(panels[0].querySelector('[data-solution]').value,'Solução ajustada manualmente.');
+ assert.equal(w.document.querySelector('[data-apply]').disabled,true,'receiving an intent must never apply GLPI writes');
+ assert.deepEqual(tasks,[]);panels[0].querySelector('[data-target]').value='close';panels[0].querySelector('[data-selected]').checked=true;await w.document.querySelector('[data-review]').onclick();assert.equal(w.document.querySelector('[data-apply]').disabled,false);assert.deepEqual(tasks,[]);
+ await w.document.querySelector('[data-apply]').onclick();assert.deepEqual(tasks,[23,24]);assert.equal(finalized.length,2);assert.deepEqual(finalized.map(x=>x[2]),['close','solve']);assert(finalized.every(x=>x[1].includes('manualmente')||x[1].includes('normalizada')));
+ console.log('PASS: multi-ticket intent carried, incomplete intent withheld, destination and solution prefilled, batch selected, no GLPI write');dom.window.close();
+})().catch(e=>{console.error(e);dom.window.close();process.exitCode=1;});

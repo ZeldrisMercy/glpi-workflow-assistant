@@ -1,0 +1,12 @@
+Package: glpi-assistant
+Version: 3.4.0~beta.1-1
+Section: admin
+Priority: optional
+Architecture: all
+Maintainer: GLPI Workflow Assistant Project
+Depends: python3, python3-pip, docker.io, ca-certificates, xdg-utils, util-linux
+Description: Self-hosted localhost assistant for GLPI REST API task documentation
+ GLPI Assistant runs as a local Docker container bound to 127.0.0.1:8765.
+ It parses structured ticket-closing text, maps drag-and-drop evidence files to
+ multiple TicketTask records, reads GLPI catalogs dynamically and only changes
+ ticket fields explicitly declared in the closing instructions.

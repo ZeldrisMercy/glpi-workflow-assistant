@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -e
+if [ "${1:-}" = "purge" ]; then
+  echo "Dados e sessão preservados em /var/lib/glpi-assistant. Remoção definitiva deve ser explícita após backup."
+fi
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl daemon-reload >/dev/null 2>&1 || true
+fi
+exit 0

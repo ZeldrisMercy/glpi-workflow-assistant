@@ -1,0 +1,20 @@
+{
+  "title": "Endpoint reports repeated VPN authentication failures",
+  "description": "Synthetic demonstration incident. No production data.",
+  "requester": {
+    "display_name": "Marina Costa",
+    "id": 1001
+  },
+  "entity": {
+    "name": "Acme Lab",
+    "id": 2001
+  },
+  "category": {
+    "name": "Network > VPN",
+    "id": 3001
+  },
+  "priority": "normal",
+  "source": "proactive",
+  "correlation_key": "demo-vpn-auth-failure-endpoint-001",
+  "evidence": []
+}

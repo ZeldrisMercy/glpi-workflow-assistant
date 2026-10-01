@@ -1,0 +1,16 @@
+[Unit]
+Description=GLPI Assistant localhost web application
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+ExecStartPre=/bin/sh -c '/usr/bin/docker rm -f glpi-assistant >/dev/null 2>&1 || true'
+ExecStart=/usr/lib/glpi-assistant/run-container.sh
+ExecStop=/usr/bin/docker stop -t 10 glpi-assistant
+
+[Install]
+WantedBy=multi-user.target
