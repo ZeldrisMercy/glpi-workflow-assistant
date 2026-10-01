@@ -1,12 +1,12 @@
 {
   "version": "3.4.0-beta.1",
   "repository": "ZeldrisMercy/glpi-workflow-assistant",
-  "repository_visibility": "private",
+  "repository_visibility": "public",
   "validated_remote_commit": "ffbbf6847b7f7444a455f7e7d8d2c3c81574c31c",
   "validated_tree": "b62c9d89a36b4138c08fb67a3dc29400359cc16e",
   "evidence_commit_scope": "documentation only; application and release artifacts unchanged",
   "validated_at_utc": "2026-10-01T02:53:22Z",
-  "visibility_change_authorized": false,
+  "visibility_change_authorized": true,
   "checks": {
     "python_tests": {
       "status": "passed",
@@ -33,9 +33,9 @@
       "run_id": 36807751963
     },
     "codeql": {
-      "status": "configured_private_deferred",
-      "run_id": 36807751998,
-      "reason": "GitHub code scanning result upload is unavailable while this repository is private; the workflow becomes strict when public."
+      "status": "public_rerun_pending",
+      "run_id": null,
+      "reason": "This publication-state commit triggers strict CodeQL result upload for the now-public repository."
     },
     "screenshots": {
       "status": "passed",
@@ -73,8 +73,7 @@
     }
   ],
   "known_release_blockers": [
-    "Owner review and explicit visibility authorization are still required.",
     "Clean-host Debian installation has not been executed.",
-    "CodeQL result upload must complete successfully after public code scanning becomes available."
+    "CodeQL public result upload must complete successfully."
   ]
 }

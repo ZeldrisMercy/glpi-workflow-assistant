@@ -1,6 +1,6 @@
 # Publication report — v3.4.0-beta.1
 
-Candidate validation covers application commit `ffbbf6847b7f7444a455f7e7d8d2c3c81574c31c` and tree `b62c9d89a36b4138c08fb67a3dc29400359cc16e`. A later evidence-only commit records these results without changing the validated application or release artifacts. The repository remained private throughout this review.
+Candidate validation covers application commit `ffbbf6847b7f7444a455f7e7d8d2c3c81574c31c` and tree `b62c9d89a36b4138c08fb67a3dc29400359cc16e`. A later evidence-only commit records these results without changing the validated application or release artifacts. The review was completed privately; the owner explicitly authorized public visibility immediately before publication on 2026-10-01.
 
 ## Evidence summary
 
@@ -13,7 +13,7 @@ Candidate validation covers application commit `ffbbf6847b7f7444a455f7e7d8d2c3c8
 | SHA-256 | 5 payload checks verified | `dist/SHA256SUMS` |
 | GitHub CI | passed | run `36807751963`, including `npm ci`, dependency audits and build gates |
 | Screenshots | 8 passed | zero external requests, zero real GLPI writes and zero OCR findings |
-| CodeQL | configured; upload deferred while private | analysis ran for Python and JavaScript; GitHub rejected result upload because code scanning is unavailable |
+| CodeQL | public rerun pending | private analysis passed for Python and JavaScript; this publication-state commit triggers strict public result upload |
 | Clean-host installation | not executed | current runner has neither systemd nor Docker |
 
 ## Release artifacts
@@ -40,9 +40,7 @@ The capture harness rendered eight application views using synthetic fixtures. I
 
 ## Pending publication gates
 
-1. CodeQL result upload must finish successfully after public code scanning becomes available.
+1. CodeQL public result upload must finish successfully.
 2. A disposable supported Linux host must complete install, loopback health, synthetic workflow, backup and removal/rollback acceptance, or the limitation must remain prominent.
-3. The owner must review the private PR and final packet.
-4. The owner must give a fresh, explicit authorization immediately before repository visibility changes.
 
-`visibility_change_authorized: false`
+`visibility_change_authorized: true`
